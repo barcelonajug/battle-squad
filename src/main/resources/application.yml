@@ -2,6 +2,31 @@ spring:
   application:
     name: battle-contender
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-key-here}
+      chat:
+        options:
+          model: gpt-4o-mini
+    vertex:
+      ai:
+        gemini:
+          project-id: ${GCP_PROJECT_ID:your-gcp-project-here}
+          location: ${GCP_LOCATION:europe-west1}
+          chat:
+            options:
+              model: gemini-2.0-flash-exp
+    ollama:
+      base-url: ${OLLAMA_URL:http://localhost:11434}
+      chat:
+        options:
+          model: llama3.2
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:your-anthropic-key-here}
+      chat:
+        options:
+          model: claude-3-5-haiku-20241022
+
 arena:
   api:
     base-url: https://superhero-battle-arena-240308062004.europe-southwest1.run.app

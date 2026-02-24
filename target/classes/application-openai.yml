@@ -1,7 +1,0 @@
-spring:
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY:your-openai-key-here}
-      chat:
-        options:
-          model: gpt-4o-mini
