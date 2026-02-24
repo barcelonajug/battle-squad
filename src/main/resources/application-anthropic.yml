@@ -1,0 +1,7 @@
+spring:
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:your-anthropic-key-here}
+      chat:
+        options:
+          model: claude-3-5-haiku-20241022

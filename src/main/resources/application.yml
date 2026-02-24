@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: battle-contender
+
+arena:
+  api:
+    base-url: https://superhero-battle-arena-240308062004.europe-southwest1.run.app
