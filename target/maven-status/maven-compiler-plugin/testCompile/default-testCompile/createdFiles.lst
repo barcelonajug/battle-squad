@@ -1,0 +1,4 @@
+com/workshop/battlecontender/client/ArenaApiClientTest.class
+com/workshop/battlecontender/BattleContenderApplicationTest.class
+com/workshop/battlecontender/ai/tools/HeroSearchToolTest.class
+com/workshop/battlecontender/controller/ContenderControllerTest.class
