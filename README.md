@@ -50,19 +50,23 @@ This project is configured with Maven profiles to support multiple AI providers.
 
 ### 2. Configure Credentials
 
-Set your API key as an environment variable before running the application.
+Create a `.env` file in the root of the project to set your API key.
 
 **For OpenAI (Default):**
 
-```bash
-export OPENAI_API_KEY="your-api-key"
+Create a `.env` file and add:
+
+```properties
+OPENAI_API_KEY=your-api-key
 ```
 
 **For Vertex AI:**
 
-```bash
-export GCP_PROJECT_ID="your-project"
-export GCP_LOCATION="europe-west1"
+Create a `.env` file and add:
+
+```properties
+GCP_PROJECT_ID=your-project
+GCP_LOCATION=europe-west1
 # Ensure you are authenticated with gcloud: `gcloud auth application-default login`
 ```
 
