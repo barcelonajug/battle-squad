@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Contender - AI Workshop</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 210 40% 98%;
+            --primary-foreground: 222.2 47.4% 11.2%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 212.7 26.8% 83.9%;
+            --radius: 0.5rem;
+        }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        /* shadcn-style sheet animations */
+        .sheet-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            transition: opacity 0.3s ease-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sheet-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sheet-content {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .sheet-content.open {
+            transform: translateX(0);
+        }
+
+        /* Loading spinner */
+        .loader {
+            border: 3px solid hsl(var(--muted));
+            border-bottom-color: hsl(var(--primary));
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-8">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center pb-6 border-b border-border">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">Battle Contender</h1>
+                <p class="text-muted-foreground mt-1">Spring AI + Java 25 Workshop Template</p>
+            </div>
+            <div id="session-badge" class="hidden inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary shadow-sm">
+                Session Active
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Left Column: Registration & Squad -->
+            <div class="space-y-6">
+                
+                <!-- Registration Card -->
+                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+                    <div class="flex flex-col space-y-1.5 p-6">
+                        <h3 class="text-2xl font-semibold leading-none tracking-tight">1. Register Team</h3>
+                        <p class="text-sm text-muted-foreground">Register your workshop group to get a Team ID.</p>
+                    </div>
+                    <div class="p-6 pt-0">
+                        <form id="register-form" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium leading-none">Team Name</label>
+                                <input type="text" id="reg-team-name" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium leading-none">Members (comma separated)</label>
+                                <input type="text" id="reg-members" placeholder="Alice, Bob" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                            </div>
+                            <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                                Register
+                            </button>
+                        </form>
+                        
+                        <div id="team-id-display" class="hidden mt-4 p-3 bg-secondary rounded-md text-sm break-all font-mono">
+                            <!-- Team ID injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Round Card -->
+                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+                    <div class="flex flex-col space-y-1.5 p-6">
+                        <h3 class="text-2xl font-semibold leading-none tracking-tight">2. Active Round</h3>
+                        <div class="flex items-center gap-2">
+                            <select id="round-select" class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <option value="">Select a round...</option>
+                            </select>
+                            <button id="btn-load-round" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 hidden">Load</button>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 text-sm space-y-4" id="round-constraints-container">
+                        <p class="text-muted-foreground">Select a round to view constraints.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Middle/Right Column: Hero Browser & AI Magic -->
+            <div class="md:col-span-2 space-y-6">
+                
+                <!-- Hero Browser -->
+                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm h-full flex flex-col">
+                    <div class="flex flex-col space-y-1.5 p-6 pb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-2xl font-semibold leading-none tracking-tight">3. Build & Optimize</h3>
+                                <p class="text-sm text-muted-foreground mt-1">Browse heroes or let the AI build the optimal squad.</p>
+                            </div>
+                            <!-- AI Optimize Button -->
+                            <button id="btn-ai-optimize" disabled class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed group">
+                                <span class="mr-2">✨</span> 
+                                <span class="btn-text">Optimize with AI</span>
+                                <span class="loader w-4 h-4 ml-2 hidden"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Search Filters -->
+                        <div class="flex gap-2 pt-4">
+                            <input type="text" id="hero-search" placeholder="Search hero..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <select id="hero-alignment" class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                <option value="">Any align</option>
+                                <option value="good">Good</option>
+                                <option value="bad">Bad</option>
+                                <option value="neutral">Neutral</option>
+                            </select>
+                            <button id="btn-search" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">Search</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Hero Grid -->
+                    <div class="p-6 pt-0 flex-1 overflow-y-auto min-h-[400px]">
+                        <div id="hero-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Hero cards injected here -->
+                            <div class="col-span-full text-center py-12 text-muted-foreground">
+                                Use the search controls above to browse available heroes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Result Slide-in Sheet (shadcn style) -->
+    <div id="ai-sheet-overlay" class="sheet-overlay fixed inset-0 z-50"></div>
+    <div id="ai-sheet" class="sheet-content fixed inset-y-0 right-0 z-50 w-full sm:max-w-md border-l border-border bg-background p-6 shadow-2xl flex flex-col h-full overflow-y-auto">
+        <div class="flex flex-col space-y-2 mb-6">
+            <h2 class="text-lg font-semibold text-foreground">AI Optimization Result</h2>
+            <p class="text-sm text-muted-foreground">The AI advisor has analyzed the round constraints and built this squad.</p>
+        </div>
+        
+        <div class="flex-1 space-y-6">
+            <!-- Strategy & Reasoning -->
+            <div class="space-y-4">
+                <div class="rounded-md bg-muted p-4">
+                    <h4 class="text-sm font-semibold mb-1">Reasoning</h4>
+                    <p id="ai-reasoning" class="text-sm text-muted-foreground"></p>
+                </div>
+                <div class="rounded-md border border-border p-4">
+                    <h4 class="text-sm font-semibold mb-1">Battle Strategy</h4>
+                    <p id="ai-strategy" class="text-sm text-muted-foreground"></p>
+                </div>
+            </div>
+
+            <!-- Hero Roster -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-semibold">Selected Roster</h4>
+                    <span id="ai-total-cost" class="text-sm font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground">Cost: 0</span>
+                </div>
+                <!-- Hero IDs list -->
+                <ul id="ai-hero-ids" class="space-y-2 font-mono text-sm text-muted-foreground bg-black/20 p-3 rounded-md border border-border">
+                </ul>
+            </div>
+            
+            <div id="submit-feedback" class="text-sm p-3 rounded-md hidden"></div>
+        </div>
+
+        <div class="mt-6 flex gap-3 justify-end">
+            <button id="btn-close-sheet" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                Cancel
+            </button>
+            <button id="btn-submit-squad" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                Submit this Squad
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        $(document).ready(function() {
+            
+            let currentSessionId = null;
+            let currentTeamId = null;
+            let activeRoundNo = null;
+            let currentRecommendation = null;
+
+            // 1. Initial Load: Check session
+            $.get('/api/contender/session', function(session) {
+                if (session && session.active) {
+                    currentSessionId = session.sessionId;
+                    $('#session-badge').removeClass('hidden').text(`Session: ${session.sessionId.substring(0,8)}...`);
+                    loadRounds(currentSessionId);
+                }
+            }).fail(function() {
+                console.log("No active session found immediately. Will pass null.");
+            });
+
+            // 2. Register Team
+            $('#register-form').on('submit', function(e) {
+                e.preventDefault();
+                const name = $('#reg-team-name').val();
+                const members = $('#reg-members').val().split(',').map(s => s.trim());
+                
+                const payload = {
+                    name,
+                    members,
+                    sessionId: currentSessionId
+                };
+
+                $.ajax({
+                    url: '/api/contender/register',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function(response) {
+                        currentTeamId = response.teamId;
+                        $('#team-id-display')
+                            .html(`<strong>Team ID:</strong><br>${currentTeamId}`)
+                            .removeClass('hidden');
+                        checkAIAvailability();
+                    },
+                    error: function(xhr) {
+                        alert("Registration failed: " + (xhr.responseJSON?.error || xhr.status));
+                    }
+                });
+            });
+
+            // 3. Load Rounds List
+            function loadRounds(sessionId) {
+                $.get(`/api/contender/rounds?sessionId=${sessionId}`, function(rounds) {
+                    const select = $('#round-select');
+                    select.empty().append('<option value="">Select a round...</option>');
+                    rounds.forEach(r => {
+                        select.append(`<option value="${r.roundNo}">Round ${r.roundNo} (${r.status})</option>`);
+                    });
+                    
+                    $('#round-select').on('change', function() {
+                        const roundNo = $(this).val();
+                        if (roundNo) {
+                            loadRoundConstraints(roundNo);
+                        } else {
+                            $('#round-constraints-container').html('<p class="text-muted-foreground">Select a round to view constraints.</p>');
+                            activeRoundNo = null;
+                            checkAIAvailability();
+                        }
+                    });
+                });
+            }
+
+            // 4. Load Round Constraints
+            function loadRoundConstraints(roundNo) {
+                $.get(`/api/contender/round/${roundNo}?sessionId=${currentSessionId}`, function(spec) {
+                    activeRoundNo = parseInt(roundNo);
+                    checkAIAvailability();
+                    
+                    let rolesHtml = '';
+                    if (spec.requiredRoles) Object.entries(spec.requiredRoles).forEach(([k,v]) => rolesHtml += `<span class="bg-secondary px-2 py-0.5 rounded mr-1">${v}x ${k}</span>`);
+                    
+                    let bansHtml = '';
+                    if (spec.bannedTags) spec.bannedTags.forEach(t => bansHtml += `<span class="text-destructive bg-destructive/10 px-2 py-0.5 rounded mr-1">${t}</span>`);
+
+                    $('#round-constraints-container').html(`
+                        <div class="space-y-3">
+                            <div><span class="font-semibold text-foreground">Mission:</span> ${spec.description}</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-3 border border-border rounded-md bg-background">
+                                    <div class="text-muted-foreground text-xs uppercase mb-1">Budget Cap</div>
+                                    <div class="font-mono text-lg">${spec.budgetCap} 💰</div>
+                                </div>
+                                <div class="p-3 border border-border rounded-md bg-background">
+                                    <div class="text-muted-foreground text-xs uppercase mb-1">Team Size</div>
+                                    <div class="font-mono text-lg">${spec.teamSize} 🦸‍♂️</div>
+                                </div>
+                            </div>
+                            ${rolesHtml ? `<div><div class="font-semibold text-foreground text-xs uppercase mb-1">Required Roles</div>${rolesHtml}</div>` : ''}
+                            ${bansHtml ? `<div><div class="font-semibold text-foreground text-xs uppercase mb-1">Banned Tags</div>${bansHtml}</div>` : ''}
+                        </div>
+                    `);
+                });
+            }
+
+            // 5. Hero Browser Search
+            $('#btn-search').on('click', function() {
+                const q = $('#hero-search').val();
+                const alignment = $('#hero-alignment').val();
+                
+                $('#hero-grid').html('<div class="col-span-full flex justify-center py-8"><div class="loader w-8 h-8"></div></div>');
+
+                $.get(`/api/contender/heroes`, {q, alignment}, function(heroes) {
+                    const grid = $('#hero-grid');
+                    grid.empty();
+                    
+                    if (!heroes || heroes.length === 0) {
+                        grid.html('<div class="col-span-full text-center py-12 text-muted-foreground">No heroes found matching your criteria.</div>');
+                        return;
+                    }
+
+                    heroes.slice(0, 20).forEach(h => { // limit to 20 for UI perf
+                        grid.append(`
+                            <div class="rounded-lg border border-border bg-background p-4 flex flex-col items-center text-center shadow-sm">
+                                <div class="w-16 h-16 rounded-full overflow-hidden bg-muted mb-3 border-2 border-primary/20">
+                                    ${h.images?.sm ? `<img src="${h.images.sm}" class="w-full h-full object-cover">` : ''}
+                                </div>
+                                <h4 class="font-semibold text-sm line-clamp-1 w-full" title="${h.name}">${h.name}</h4>
+                                <div class="text-xs text-muted-foreground mt-1">${h.publisher || 'Unknown'}</div>
+                                <div class="mt-3 flex gap-2 justify-center w-full">
+                                    <span class="text-xs font-mono bg-secondary px-2 py-1 rounded">${h.role}</span>
+                                    <span class="text-xs font-mono bg-primary/20 text-primary px-2 py-1 rounded">${h.cost} 💰</span>
+                                </div>
+                            </div>
+                        `);
+                    });
+                });
+            });
+
+            // Trigger search on enter
+            $('#hero-search').keypress(function(e){
+                if(e.which == 13) $('#btn-search').click();
+            });
+
+            // 6. AI Optimization Flow
+            function checkAIAvailability() {
+                if (currentTeamId && activeRoundNo && currentSessionId) {
+                    $('#btn-ai-optimize').prop('disabled', false);
+                } else {
+                    $('#btn-ai-optimize').prop('disabled', true);
+                }
+            }
+
+            const sheet = $('#ai-sheet');
+            const overlay = $('#ai-sheet-overlay');
+
+            function openSheet() {
+                overlay.addClass('open');
+                sheet.addClass('open');
+            }
+
+            function closeSheet() {
+                overlay.removeClass('open');
+                sheet.removeClass('open');
+                $('#submit-feedback').hide();
+            }
+
+            $('#btn-close-sheet, #ai-sheet-overlay').on('click', closeSheet);
+
+            $('#btn-ai-optimize').on('click', function() {
+                const btn = $(this);
+                btn.prop('disabled', true);
+                btn.find('.loader').removeClass('hidden');
+                btn.find('.btn-text').text('AI is thinking...');
+
+                const payload = {
+                    teamId: currentTeamId,
+                    roundNo: activeRoundNo,
+                    sessionId: currentSessionId
+                };
+
+                $.ajax({
+                    url: '/api/contender/optimize',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function(resp) {
+                        currentRecommendation = resp;
+                        
+                        $('#ai-reasoning').text(resp.reasoning);
+                        $('#ai-strategy').text(resp.strategy);
+                        $('#ai-total-cost').text(`Cost: ${resp.totalCost}`);
+                        
+                        const heroesList = $('#ai-hero-ids');
+                        heroesList.empty();
+                        resp.heroIds.forEach(id => {
+                            heroesList.append(`<li>🦸‍♂️ Hero ID: ${id} <span class="text-xs ml-2 opacity-50">(Check API for details)</span></li>`);
+                        });
+
+                        openSheet();
+                    },
+                    error: function(xhr) {
+                        alert("AI optimization failed: " + (xhr.responseJSON?.error || xhr.statusText));
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false);
+                        btn.find('.loader').addClass('hidden');
+                        btn.find('.btn-text').text('Optimize with AI');
+                    }
+                });
+            });
+
+            // 7. Submit Squad
+            $('#btn-submit-squad').on('click', function() {
+                if (!currentRecommendation) return;
+
+                const btn = $(this);
+                btn.prop('disabled', true).text('Submitting...');
+                $('#submit-feedback').removeClass('bg-destructive/20 text-destructive bg-green-500/20 text-green-500').hide();
+
+                const payload = {
+                    teamId: currentTeamId,
+                    roundNo: activeRoundNo,
+                    heroIds: currentRecommendation.heroIds,
+                    strategy: currentRecommendation.strategy
+                };
+
+                $.ajax({
+                    url: '/api/contender/submit',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function() {
+                        $('#submit-feedback')
+                            .text('✅ Squad submitted successfully to the Arena!')
+                            .addClass('bg-green-500/20 text-green-400')
+                            .show();
+                    },
+                    error: function(xhr) {
+                        $('#submit-feedback')
+                            .text('❌ Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText))
+                            .addClass('bg-destructive/20 text-destructive')
+                            .show();
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).text('Submit this Squad');
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
