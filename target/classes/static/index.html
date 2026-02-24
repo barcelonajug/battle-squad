@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,32 +114,40 @@
             box-sizing: border-box;
             animation: rotation 1s linear infinite;
         }
+
         @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body class="min-h-screen font-sans antialiased p-8">
 
     <div class="max-w-6xl mx-auto space-y-8">
-        
+
         <!-- Header -->
         <header class="flex justify-between items-center pb-6 border-b border-border">
             <div>
                 <h1 class="text-3xl font-bold tracking-tight">Battle Contender</h1>
                 <p class="text-muted-foreground mt-1">Spring AI + Java 25 Workshop Template</p>
             </div>
-            <div id="session-badge" class="hidden inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary shadow-sm">
+            <div id="session-badge"
+                class="hidden inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary shadow-sm">
                 Session Active
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
             <!-- Left Column: Registration & Squad -->
             <div class="space-y-6">
-                
+
                 <!-- Registration Card -->
                 <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
                     <div class="flex flex-col space-y-1.5 p-6">
@@ -149,18 +158,22 @@
                         <form id="register-form" class="space-y-4">
                             <div class="space-y-2">
                                 <label class="text-sm font-medium leading-none">Team Name</label>
-                                <input type="text" id="reg-team-name" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                <input type="text" id="reg-team-name" required
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-sm font-medium leading-none">Members (comma separated)</label>
-                                <input type="text" id="reg-members" placeholder="Alice, Bob" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                                <input type="text" id="reg-members" placeholder="Alice, Bob" required
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                             </div>
-                            <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                            <button type="submit"
+                                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
                                 Register
                             </button>
                         </form>
-                        
-                        <div id="team-id-display" class="hidden mt-4 p-3 bg-secondary rounded-md text-sm break-all font-mono">
+
+                        <div id="team-id-display"
+                            class="hidden mt-4 p-3 bg-secondary rounded-md text-sm break-all font-mono">
                             <!-- Team ID injected here -->
                         </div>
                     </div>
@@ -171,10 +184,12 @@
                     <div class="flex flex-col space-y-1.5 p-6">
                         <h3 class="text-2xl font-semibold leading-none tracking-tight">2. Active Round</h3>
                         <div class="flex items-center gap-2">
-                            <select id="round-select" class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            <select id="round-select"
+                                class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                                 <option value="">Select a round...</option>
                             </select>
-                            <button id="btn-load-round" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 hidden">Load</button>
+                            <button id="btn-load-round"
+                                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 hidden">Load</button>
                         </div>
                     </div>
                     <div class="p-6 pt-0 text-sm space-y-4" id="round-constraints-container">
@@ -186,36 +201,42 @@
 
             <!-- Middle/Right Column: Hero Browser & AI Magic -->
             <div class="md:col-span-2 space-y-6">
-                
+
                 <!-- Hero Browser -->
-                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm h-full flex flex-col">
+                <div
+                    class="rounded-lg border border-border bg-card text-card-foreground shadow-sm h-full flex flex-col">
                     <div class="flex flex-col space-y-1.5 p-6 pb-4">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-2xl font-semibold leading-none tracking-tight">3. Build & Optimize</h3>
-                                <p class="text-sm text-muted-foreground mt-1">Browse heroes or let the AI build the optimal squad.</p>
+                                <p class="text-sm text-muted-foreground mt-1">Browse heroes or let the AI build the
+                                    optimal squad.</p>
                             </div>
                             <!-- AI Optimize Button -->
-                            <button id="btn-ai-optimize" disabled class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed group">
-                                <span class="mr-2">✨</span> 
+                            <button id="btn-ai-optimize" disabled
+                                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed group">
+                                <span class="mr-2">✨</span>
                                 <span class="btn-text">Optimize with AI</span>
                                 <span class="loader w-4 h-4 ml-2 hidden"></span>
                             </button>
                         </div>
-                        
+
                         <!-- Search Filters -->
                         <div class="flex gap-2 pt-4">
-                            <input type="text" id="hero-search" placeholder="Search hero..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                            <select id="hero-alignment" class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <input type="text" id="hero-search" placeholder="Search hero..."
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <select id="hero-alignment"
+                                class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                 <option value="">Any align</option>
                                 <option value="good">Good</option>
                                 <option value="bad">Bad</option>
                                 <option value="neutral">Neutral</option>
                             </select>
-                            <button id="btn-search" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">Search</button>
+                            <button id="btn-search"
+                                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">Search</button>
                         </div>
                     </div>
-                    
+
                     <!-- Hero Grid -->
                     <div class="p-6 pt-0 flex-1 overflow-y-auto min-h-[400px]">
                         <div id="hero-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -233,12 +254,14 @@
 
     <!-- AI Result Slide-in Sheet (shadcn style) -->
     <div id="ai-sheet-overlay" class="sheet-overlay fixed inset-0 z-50"></div>
-    <div id="ai-sheet" class="sheet-content fixed inset-y-0 right-0 z-50 w-full sm:max-w-md border-l border-border bg-background p-6 shadow-2xl flex flex-col h-full overflow-y-auto">
+    <div id="ai-sheet"
+        class="sheet-content fixed inset-y-0 right-0 z-50 w-full sm:max-w-md border-l border-border bg-background p-6 shadow-2xl flex flex-col h-full overflow-y-auto">
         <div class="flex flex-col space-y-2 mb-6">
             <h2 class="text-lg font-semibold text-foreground">AI Optimization Result</h2>
-            <p class="text-sm text-muted-foreground">The AI advisor has analyzed the round constraints and built this squad.</p>
+            <p class="text-sm text-muted-foreground">The AI advisor has analyzed the round constraints and built this
+                squad.</p>
         </div>
-        
+
         <div class="flex-1 space-y-6">
             <!-- Strategy & Reasoning -->
             <div class="space-y-4">
@@ -256,21 +279,26 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <h4 class="text-sm font-semibold">Selected Roster</h4>
-                    <span id="ai-total-cost" class="text-sm font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground">Cost: 0</span>
+                    <span id="ai-total-cost"
+                        class="text-sm font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground">Cost:
+                        0</span>
                 </div>
                 <!-- Hero IDs list -->
-                <ul id="ai-hero-ids" class="space-y-2 font-mono text-sm text-muted-foreground bg-black/20 p-3 rounded-md border border-border">
+                <ul id="ai-hero-ids"
+                    class="space-y-2 font-mono text-sm text-muted-foreground bg-black/20 p-3 rounded-md border border-border">
                 </ul>
             </div>
-            
+
             <div id="submit-feedback" class="text-sm p-3 rounded-md hidden"></div>
         </div>
 
         <div class="mt-6 flex gap-3 justify-end">
-            <button id="btn-close-sheet" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+            <button id="btn-close-sheet"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
                 Cancel
             </button>
-            <button id="btn-submit-squad" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+            <button id="btn-submit-squad"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                 Submit this Squad
             </button>
         </div>
@@ -278,30 +306,30 @@
 
     <!-- Application Logic -->
     <script>
-        $(document).ready(function() {
-            
+        $(document).ready(function () {
+
             let currentSessionId = null;
             let currentTeamId = null;
             let activeRoundNo = null;
             let currentRecommendation = null;
 
             // 1. Initial Load: Check session
-            $.get('/api/contender/session', function(session) {
+            $.get('/api/contender/session', function (session) {
                 if (session && session.active) {
                     currentSessionId = session.sessionId;
-                    $('#session-badge').removeClass('hidden').text(`Session: ${session.sessionId.substring(0,8)}...`);
+                    $('#session-badge').removeClass('hidden').text(`Session: ${session.sessionId.substring(0, 8)}...`);
                     loadRounds(currentSessionId);
                 }
-            }).fail(function() {
+            }).fail(function () {
                 console.log("No active session found immediately. Will pass null.");
             });
 
             // 2. Register Team
-            $('#register-form').on('submit', function(e) {
+            $('#register-form').on('submit', function (e) {
                 e.preventDefault();
                 const name = $('#reg-team-name').val();
                 const members = $('#reg-members').val().split(',').map(s => s.trim());
-                
+
                 const payload = {
                     name,
                     members,
@@ -313,14 +341,14 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(payload),
-                    success: function(response) {
+                    success: function (response) {
                         currentTeamId = response.teamId;
                         $('#team-id-display')
                             .html(`<strong>Team ID:</strong><br>${currentTeamId}`)
                             .removeClass('hidden');
                         checkAIAvailability();
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         alert("Registration failed: " + (xhr.responseJSON?.error || xhr.status));
                     }
                 });
@@ -328,14 +356,14 @@
 
             // 3. Load Rounds List
             function loadRounds(sessionId) {
-                $.get(`/api/contender/rounds?sessionId=${sessionId}`, function(rounds) {
+                $.get(`/api/contender/rounds?sessionId=${sessionId}`, function (rounds) {
                     const select = $('#round-select');
                     select.empty().append('<option value="">Select a round...</option>');
                     rounds.forEach(r => {
                         select.append(`<option value="${r.roundNo}">Round ${r.roundNo} (${r.status})</option>`);
                     });
-                    
-                    $('#round-select').on('change', function() {
+
+                    $('#round-select').on('change', function () {
                         const roundNo = $(this).val();
                         if (roundNo) {
                             loadRoundConstraints(roundNo);
@@ -350,13 +378,13 @@
 
             // 4. Load Round Constraints
             function loadRoundConstraints(roundNo) {
-                $.get(`/api/contender/round/${roundNo}?sessionId=${currentSessionId}`, function(spec) {
+                $.get(`/api/contender/round/${roundNo}?sessionId=${currentSessionId}`, function (spec) {
                     activeRoundNo = parseInt(roundNo);
                     checkAIAvailability();
-                    
+
                     let rolesHtml = '';
-                    if (spec.requiredRoles) Object.entries(spec.requiredRoles).forEach(([k,v]) => rolesHtml += `<span class="bg-secondary px-2 py-0.5 rounded mr-1">${v}x ${k}</span>`);
-                    
+                    if (spec.requiredRoles) Object.entries(spec.requiredRoles).forEach(([k, v]) => rolesHtml += `<span class="bg-secondary px-2 py-0.5 rounded mr-1">${v}x ${k}</span>`);
+
                     let bansHtml = '';
                     if (spec.bannedTags) spec.bannedTags.forEach(t => bansHtml += `<span class="text-destructive bg-destructive/10 px-2 py-0.5 rounded mr-1">${t}</span>`);
 
@@ -381,16 +409,16 @@
             }
 
             // 5. Hero Browser Search
-            $('#btn-search').on('click', function() {
+            $('#btn-search').on('click', function () {
                 const q = $('#hero-search').val();
                 const alignment = $('#hero-alignment').val();
-                
+
                 $('#hero-grid').html('<div class="col-span-full flex justify-center py-8"><div class="loader w-8 h-8"></div></div>');
 
-                $.get(`/api/contender/heroes`, {q, alignment}, function(heroes) {
+                $.get(`/api/contender/heroes`, { q, alignment }, function (heroes) {
                     const grid = $('#hero-grid');
                     grid.empty();
-                    
+
                     if (!heroes || heroes.length === 0) {
                         grid.html('<div class="col-span-full text-center py-12 text-muted-foreground">No heroes found matching your criteria.</div>');
                         return;
@@ -415,8 +443,8 @@
             });
 
             // Trigger search on enter
-            $('#hero-search').keypress(function(e){
-                if(e.which == 13) $('#btn-search').click();
+            $('#hero-search').keypress(function (e) {
+                if (e.which == 13) $('#btn-search').click();
             });
 
             // 6. AI Optimization Flow
@@ -444,7 +472,7 @@
 
             $('#btn-close-sheet, #ai-sheet-overlay').on('click', closeSheet);
 
-            $('#btn-ai-optimize').on('click', function() {
+            $('#btn-ai-optimize').on('click', function () {
                 const btn = $(this);
                 btn.prop('disabled', true);
                 btn.find('.loader').removeClass('hidden');
@@ -461,25 +489,25 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(payload),
-                    success: function(resp) {
+                    success: function (resp) {
                         currentRecommendation = resp;
-                        
+
                         $('#ai-reasoning').text(resp.reasoning);
                         $('#ai-strategy').text(resp.strategy);
                         $('#ai-total-cost').text(`Cost: ${resp.totalCost}`);
-                        
+
                         const heroesList = $('#ai-hero-ids');
                         heroesList.empty();
-                        resp.heroIds.forEach(id => {
-                            heroesList.append(`<li>🦸‍♂️ Hero ID: ${id} <span class="text-xs ml-2 opacity-50">(Check API for details)</span></li>`);
+                        resp.heroes.forEach(h => {
+                            heroesList.append(`<li>🦸‍♂️ ${h.name} <span class="text-xs ml-2 opacity-50">(ID: ${h.id})</span></li>`);
                         });
 
                         openSheet();
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         alert("AI optimization failed: " + (xhr.responseJSON?.error || xhr.statusText));
                     },
-                    complete: function() {
+                    complete: function () {
                         btn.prop('disabled', false);
                         btn.find('.loader').addClass('hidden');
                         btn.find('.btn-text').text('Optimize with AI');
@@ -488,7 +516,7 @@
             });
 
             // 7. Submit Squad
-            $('#btn-submit-squad').on('click', function() {
+            $('#btn-submit-squad').on('click', function () {
                 if (!currentRecommendation) return;
 
                 const btn = $(this);
@@ -498,7 +526,7 @@
                 const payload = {
                     teamId: currentTeamId,
                     roundNo: activeRoundNo,
-                    heroIds: currentRecommendation.heroIds,
+                    heroIds: currentRecommendation.heroes.map(h => h.id), // map the objects back to IDs
                     strategy: currentRecommendation.strategy
                 };
 
@@ -507,19 +535,19 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(payload),
-                    success: function() {
+                    success: function () {
                         $('#submit-feedback')
                             .text('✅ Squad submitted successfully to the Arena!')
                             .addClass('bg-green-500/20 text-green-400')
                             .show();
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         $('#submit-feedback')
                             .text('❌ Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText))
                             .addClass('bg-destructive/20 text-destructive')
                             .show();
                     },
-                    complete: function() {
+                    complete: function () {
                         btn.prop('disabled', false).text('Submit this Squad');
                     }
                 });
@@ -528,4 +556,5 @@
         });
     </script>
 </body>
+
 </html>
