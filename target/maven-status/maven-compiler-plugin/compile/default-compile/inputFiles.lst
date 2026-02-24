@@ -6,6 +6,7 @@
 /Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/client/ArenaApiClient.java
 /Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/client/ArenaApiProperties.java
 /Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/controller/ContenderController.java
+/Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/controller/EnvTestController.java
 /Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/controller/GlobalExceptionHandler.java
 /Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/model/Appearance.java
 /Users/alrs/Documents/projects/battle-contender/src/main/java/org/barcelonajug/battlecontender/model/Biography.java
