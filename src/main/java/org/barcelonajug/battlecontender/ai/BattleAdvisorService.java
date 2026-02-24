@@ -23,15 +23,20 @@ public class BattleAdvisorService {
     }
 
     public SquadRecommendation buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
-        // TODO: Workshop Participant Implementation
-        // 1. Define a system prompt template explaining the game rules.
-        // 2. Use this.chatClient.prompt() with the system prompt, passing roundNo and
-        // sessionId as parameters.
-        // 3. Register the tools: heroSearchTool and arenaManagementTool.
-        // 4. Optionally, add SimpleLoggerAdvisor for observability.
-        // 5. Use .call().entity(SquadRecommendation.class) to get structured JSON
-        // output.
-
-        throw new UnsupportedOperationException("TODO: Implement the AI advisor using Spring AI ChatClient");
+        return chatClient.prompt()
+                .system(s -> s.text("""
+                        You are an expert superhero team advisor.
+                        The user is participating in round {roundNo} of session {sessionId}.
+                        Your goal is to build an optimal squad of exactly 3 heroes.
+                        Use the arena tool to get the round constraints and the available budget.
+                        Search for heroes using the hero search tool.
+                        Pick the best combination of 3 heroes that fits the budget and rules.
+                        Provide a detailed strategy and reasoning for your choice.
+                        """)
+                        .param("roundNo", roundNo)
+                        .param("sessionId", sessionId.toString()))
+                .tools(heroSearchTool, arenaManagementTool)
+                .call()
+                .entity(SquadRecommendation.class);
     }
 }

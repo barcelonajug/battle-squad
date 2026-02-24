@@ -19,21 +19,18 @@ public class HeroSearchTool {
 
     @Tool(description = "Search for superheroes by name (case-insensitive substring match).")
     public List<Hero> searchHeroes(@ToolParam(description = "Search query string") String query) {
-        // TODO: Call arenaApiClient.searchHeroes(query)
-        throw new UnsupportedOperationException("TODO: Implement this tool");
+        return arenaApiClient.searchHeroes(query);
     }
 
     @Tool(description = "Filter heroes by alignment and/or publisher.")
     public List<Hero> filterHeroes(
             @ToolParam(description = "Hero alignment (e.g., good, bad, neutral)") String alignment,
             @ToolParam(description = "Comic publisher (e.g., DC Comics, Marvel Comics)") String publisher) {
-        // TODO: Call arenaApiClient.filterHeroes(alignment, publisher)
-        throw new UnsupportedOperationException("TODO: Implement this tool");
+        return arenaApiClient.filterHeroes(alignment, publisher);
     }
 
     @Tool(description = "Get detailed information about a specific hero by their ID.")
     public Hero getHeroDetails(@ToolParam(description = "Unique ID of the hero") int heroId) {
-        // TODO: Call arenaApiClient.getHero(heroId)
-        throw new UnsupportedOperationException("TODO: Implement this tool");
+        return arenaApiClient.getHero(heroId);
     }
 }

@@ -20,15 +20,13 @@ public class ArenaManagementTool {
 
     @Tool(description = "Get the currently active tournament session ID and details.")
     public Session getActiveSession() {
-        // TODO: Call arenaApiClient.getActiveSession()
-        throw new UnsupportedOperationException("TODO: Implement this tool");
+        return arenaApiClient.getActiveSession();
     }
 
     @Tool(description = "Get the constraints and rules for a specific round.")
     public RoundSpec getRoundConstraints(
             @ToolParam(description = "Number of the round") int roundNo,
             @ToolParam(description = "ID of the tournament session") String sessionId) {
-        // TODO: Parse UUID and call arenaApiClient.getRound(roundNo, parsedSessionId)
-        throw new UnsupportedOperationException("TODO: Implement this tool");
+        return arenaApiClient.getRound(roundNo, UUID.fromString(sessionId));
     }
 }
