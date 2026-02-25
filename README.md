@@ -43,10 +43,11 @@ This project is configured with Maven profiles to support multiple AI providers.
 
 | Profile | Provider | Required Config |
 | :--- | :--- | :--- |
-| `openai` (Default) | OpenAI | `spring.ai.openai.api-key` |
-| `vertex-ai` | Google Vertex AI | `spring.ai.vertex.ai.gemini.project-id` & `location` |
-| `anthropic` | Anthropic | `spring.ai.anthropic.api-key` |
+| `openai` (Default) | OpenAI | `OPENAI_API_KEY` |
+| `vertex-ai` | Google Vertex AI | `GCP_PROJECT_ID` & `GCP_LOCATION` |
+| `anthropic` | Anthropic | `ANTHROPIC_API_KEY` |
 | `ollama` | Ollama (Local) | *Make sure Ollama is running (`llama3.2`)* |
+| `github-copilot` | GitHub Copilot | `GITHUB_TOKEN` (personal access token with `models: read`) |
 
 ### 2. Configure Credentials
 
@@ -76,8 +77,9 @@ Use the Maven wrapper to run the project.
 
 # Or run with a specific profile
 ./mvnw spring-boot:run -Pvertex-ai
-./mvnw spring-boot:run -Ppostcss # If you want to use anthropic
+./mvnw spring-boot:run -Panthropic
 ./mvnw spring-boot:run -Pollama
+./mvnw spring-boot:run -Pgithub-copilot
 ```
 
 ### 4. Play the Game
