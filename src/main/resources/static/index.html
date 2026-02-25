@@ -769,68 +769,67 @@
                             .addClass('bg-destructive/20 text-destructive')
                             .show();
                     },
-                    complete: function () {
-                        btn.prop('disabled', false).text('Submit this Squad');
-                    }
                 });
-                // 8. Manual Squad Submission
-                $('#btn-submit-manual-squad').on('click', function () {
-                    if (!currentTeamId) {
-                        showError("Please register your team first.");
-                        return;
-                    }
-                    if (!activeRoundNo) {
-                        showError("Please select a round first.");
-                        return;
-                    }
-                    if (selectedHeroes.size === 0) {
-                        showError("Your squad is empty. Please select at least one hero.");
-                        return;
-                    }
-
-                    // Optional: Front-end validation for team size and budget
-                    if (roundConstraints) {
-                        if (selectedHeroes.size > roundConstraints.teamSize) {
-                            showError(`Too many heroes! Max team size is ${roundConstraints.teamSize}.`);
-                            return;
-                        }
-                        let total = 0;
-                        selectedHeroes.forEach(h => total += h.cost);
-                        if (total > roundConstraints.budgetCap) {
-                            showError(`Budget exceeded! Max budget is ${roundConstraints.budgetCap}.`);
-                            return;
-                        }
-                    }
-
-                    const btn = $(this);
-                    btn.prop('disabled', true).text('Submitting...');
-
-                    const payload = {
-                        teamId: currentTeamId,
-                        roundNo: activeRoundNo,
-                        heroIds: Array.from(selectedHeroes.keys()),
-                        strategy: "Manually selected squad"
-                    };
-
-                    $.ajax({
-                        url: '/api/contender/submit',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(payload),
-                        success: function () {
-                            showError("✅ Squad submitted successfully to the Arena!");
-                            // Change color to green for success message if desired, but showError is a simple generic modal
-                        },
-                        error: function (xhr) {
-                            showError('❌ Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText));
-                        },
-                        complete: function () {
-                            btn.prop('disabled', false).text('Submit Squad to Arena');
-                        }
-                    });
-                });
-
             });
+
+            // 8. Manual Squad Submission
+            $('#btn-submit-manual-squad').on('click', function () {
+                if (!currentTeamId) {
+                    showError("Please register your team first.");
+                    return;
+                }
+                if (!activeRoundNo) {
+                    showError("Please select a round first.");
+                    return;
+                }
+                if (selectedHeroes.size === 0) {
+                    showError("Your squad is empty. Please select at least one hero.");
+                    return;
+                }
+
+                // Optional: Front-end validation for team size and budget
+                if (roundConstraints) {
+                    if (selectedHeroes.size > roundConstraints.teamSize) {
+                        showError(`Too many heroes! Max team size is ${roundConstraints.teamSize}.`);
+                        return;
+                    }
+                    let total = 0;
+                    selectedHeroes.forEach(h => total += h.cost);
+                    if (total > roundConstraints.budgetCap) {
+                        showError(`Budget exceeded! Max budget is ${roundConstraints.budgetCap}.`);
+                        return;
+                    }
+                }
+
+                const btn = $(this);
+                btn.prop('disabled', true).text('Submitting...');
+
+                const payload = {
+                    teamId: currentTeamId,
+                    roundNo: activeRoundNo,
+                    heroIds: Array.from(selectedHeroes.keys()),
+                    strategy: "Manually selected squad"
+                };
+
+                $.ajax({
+                    url: '/api/contender/submit',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function () {
+                        showError("✅ Squad submitted successfully to the Arena!");
+                        // Change color to green for success message if desired, but showError is a simple generic modal
+                    },
+                    error: function (xhr) {
+                        showError('❌ Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText));
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false).text('Submit Squad to Arena');
+                    }
+                });
+            });
+
+        });
     </script>
 </body>
 
