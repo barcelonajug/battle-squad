@@ -47,11 +47,16 @@ public class ContenderController {
     @GetMapping("/heroes")
     public List<Hero> searchHeroes(@RequestParam(required = false) String q,
             @RequestParam(required = false) String alignment,
-            @RequestParam(required = false) String publisher) {
+            @RequestParam(required = false) String publisher,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
         if (q != null && !q.isBlank()) {
             return arenaApiClient.searchHeroes(q);
         }
-        return arenaApiClient.filterHeroes(alignment, publisher);
+        if ((alignment != null && !alignment.isBlank()) || (publisher != null && !publisher.isBlank())) {
+            return arenaApiClient.filterHeroes(alignment, publisher);
+        }
+        return arenaApiClient.listHeroes(page, size);
     }
 
     @PostMapping("/optimize")
