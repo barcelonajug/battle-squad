@@ -28,7 +28,7 @@ class HeroSearchToolTest {
         Hero hero = new Hero(1, "Superman", "superman", null, "Tank", 15, "good", "DC Comics", null, null, null, null);
         when(arenaApiClient.searchHeroes("Superman")).thenReturn(List.of(hero));
 
-        List<Hero> results = heroSearchTool.searchHeroes("Superman");
+        List<HeroSearchTool.HeroSummary> results = heroSearchTool.searchHeroes("Superman");
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).name()).isEqualTo("Superman");
