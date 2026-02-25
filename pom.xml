@@ -77,6 +77,9 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <properties>
+                <spring-boot.run.profiles>openai</spring-boot.run.profiles>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.ai</groupId>
@@ -86,6 +89,9 @@
         </profile>
         <profile>
             <id>vertex-ai</id>
+            <properties>
+                <spring-boot.run.profiles>vertex-ai</spring-boot.run.profiles>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.ai</groupId>
@@ -95,6 +101,9 @@
         </profile>
         <profile>
             <id>ollama</id>
+            <properties>
+                <spring-boot.run.profiles>ollama</spring-boot.run.profiles>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.ai</groupId>
@@ -104,10 +113,26 @@
         </profile>
         <profile>
             <id>anthropic</id>
+            <properties>
+                <spring-boot.run.profiles>anthropic</spring-boot.run.profiles>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.ai</groupId>
                     <artifactId>spring-ai-starter-model-anthropic</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>github-copilot</id>
+            <properties>
+                <spring-boot.run.profiles>github-copilot</spring-boot.run.profiles>
+            </properties>
+            <dependencies>
+                <!-- GitHub Copilot exposes an OpenAI-compatible API -->
+                <dependency>
+                    <groupId>org.springframework.ai</groupId>
+                    <artifactId>spring-ai-starter-model-openai</artifactId>
                 </dependency>
             </dependencies>
         </profile>
