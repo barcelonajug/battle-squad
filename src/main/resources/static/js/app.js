@@ -11,9 +11,24 @@ $(document).ready(function () {
     let selectedHeroes = new Map(); // id -> hero object
     let roundConstraints = null;
 
-    // Utility: Error Modal instead of alert
-    function showError(message) {
+    // Utility: Message Modal instead of alert
+    function showMessage(message, type = 'error') {
         $('#error-modal-message').text(message);
+
+        const header = $('#modal-header');
+        const icon = $('#modal-icon');
+        const title = $('#modal-title');
+
+        if (type === 'success') {
+            header.removeClass('text-destructive').addClass('text-green-500');
+            icon.text('✅');
+            title.text('Success');
+        } else {
+            header.removeClass('text-green-500').addClass('text-destructive');
+            icon.text('⚠️');
+            title.text('Error');
+        }
+
         $('#error-modal-overlay').removeClass('error-modal-hidden').addClass('open');
     }
 
@@ -58,7 +73,7 @@ $(document).ready(function () {
                 checkAIAvailability();
             },
             error: function (xhr) {
-                showError("Registration failed: " + (xhr.responseJSON?.error || xhr.status));
+                showMessage("Registration failed: " + (xhr.responseJSON?.error || xhr.status));
             }
         });
     });
@@ -336,7 +351,7 @@ $(document).ready(function () {
                 openSheet();
             },
             error: function (xhr) {
-                showError("AI optimization failed: " + (xhr.responseJSON?.error || xhr.statusText));
+                showMessage("AI optimization failed: " + (xhr.responseJSON?.error || xhr.statusText));
             },
             complete: function () {
                 btn.prop('disabled', false);
@@ -384,28 +399,28 @@ $(document).ready(function () {
     // 8. Manual Squad Submission
     $('#btn-submit-manual-squad').on('click', function () {
         if (!currentTeamId) {
-            showError("Please register your team first.");
+            showMessage("Please register your team first.");
             return;
         }
         if (!activeRoundNo) {
-            showError("Please select a round first.");
+            showMessage("Please select a round first.");
             return;
         }
         if (selectedHeroes.size === 0) {
-            showError("Your squad is empty. Please select at least one hero.");
+            showMessage("Your squad is empty. Please select at least one hero.");
             return;
         }
 
         // Optional: Front-end validation for team size and budget
         if (roundConstraints) {
             if (selectedHeroes.size > roundConstraints.teamSize) {
-                showError(`Too many heroes! Max team size is ${roundConstraints.teamSize}.`);
+                showMessage(`Too many heroes! Max team size is ${roundConstraints.teamSize}.`);
                 return;
             }
             let total = 0;
             selectedHeroes.forEach(h => total += h.cost);
             if (total > roundConstraints.budgetCap) {
-                showError(`Budget exceeded! Max budget is ${roundConstraints.budgetCap}.`);
+                showMessage(`Budget exceeded! Max budget is ${roundConstraints.budgetCap}.`);
                 return;
             }
         }
@@ -426,11 +441,10 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify(payload),
             success: function () {
-                showError("✅ Squad submitted successfully to the Arena!");
-                // Change color to green for success message if desired, but showError is a simple generic modal
+                showMessage("Squad submitted successfully to the Arena!", 'success');
             },
             error: function (xhr) {
-                showError('❌ Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText));
+                showMessage('Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText));
             },
             complete: function () {
                 btn.prop('disabled', false).text('Submit Squad to Arena');
