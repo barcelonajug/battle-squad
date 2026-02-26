@@ -276,14 +276,14 @@
         </div>
     </div>
 
-    <!-- Error Modal -->
+    <!-- Message Modal -->
     <div id="error-modal-overlay"
         class="sheet-overlay fixed inset-0 z-[60] flex items-center justify-center p-4 error-modal-hidden">
         <div
             class="bg-card border border-border rounded-lg shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-            <div class="flex items-center gap-3 text-destructive mb-4">
-                <span class="text-2xl">⚠️</span>
-                <h3 class="text-xl font-bold">Error</h3>
+            <div id="modal-header" class="flex items-center gap-3 text-destructive mb-4">
+                <span id="modal-icon" class="text-2xl">⚠️</span>
+                <h3 id="modal-title" class="text-xl font-bold">Error</h3>
             </div>
             <p id="error-modal-message" class="text-muted-foreground mb-6"></p>
             <div class="flex justify-end">
