@@ -1,6 +1,6 @@
 # Battle Contender: Spring Boot & AI Workshop
 
-![Battle Contender Banner](src/main/resources/static/banner.png)
+![Battle Contender Banner](src/main/resources/static/banner-v2.png)
 
 Welcome to the **Battle Contender** workshop template! In this workshop, you will learn how to build an AI-powered agent using **Spring Boot 4**, **Spring AI 2.0**, and **Java 25**. Your agent will interact with the "Superhero Battle Arena" API to register a team, analyze game constraints, and use an LLM advisor to pick an optimal hero squad within a budget!
 
