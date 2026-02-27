@@ -74,9 +74,6 @@
     <profiles>
         <profile>
             <id>openai</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <spring-boot.run.profiles>openai</spring-boot.run.profiles>
             </properties>
