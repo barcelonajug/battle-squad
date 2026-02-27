@@ -20,9 +20,9 @@ Your goal is to implement the **Spring AI** layer.
 
 Look for `UnsupportedOperationException("TODO:...")` in the codebase. The primary files you need to modify are:
 
-* `src/main/java/com/workshop/battlecontender/ai/tools/HeroSearchTool.java`
-* `src/main/java/com/workshop/battlecontender/ai/tools/ArenaManagementTool.java`
-* `src/main/java/com/workshop/battlecontender/ai/BattleAdvisorService.java`
+* `src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java`
+* `src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java`
+* `src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`
 
 You can verify your implementation by running the provided tests:
 
@@ -43,39 +43,56 @@ This project is configured with Maven profiles to support multiple AI providers.
 
 | Profile | Provider | Required Config |
 | :--- | :--- | :--- |
-| `openai` (Default) | OpenAI | `OPENAI_API_KEY` |
+| `openai` | OpenAI | `OPENAI_API_KEY` |
 | `vertex-ai` | Google Vertex AI | `GCP_PROJECT_ID` & `GCP_LOCATION` |
 | `anthropic` | Anthropic | `ANTHROPIC_API_KEY` |
 | `ollama` | Ollama (Local) | *Make sure Ollama is running (`llama3.2`)* |
-| `github-copilot` | GitHub Copilot | `GITHUB_TOKEN` (personal access token with `models: read`) |
+| `github-copilot` | GitHub Models (OpenAI-compatible) | `GITHUB_TOKEN` |
 
 ### 2. Configure Credentials
 
-Set your API key as an environment variable before running the application.
+Create a `.env` file in the root of the project to set your API key.
 
-**For OpenAI (Default):**
+**For OpenAI:**
 
-```bash
-export OPENAI_API_KEY="your-api-key"
+Create a `.env` file and add:
+
+```properties
+OPENAI_API_KEY=your-api-key
 ```
 
 **For Vertex AI:**
 
-```bash
-export GCP_PROJECT_ID="your-project"
-export GCP_LOCATION="europe-west1"
+Create a `.env` file and add:
+
+```properties
+GCP_PROJECT_ID=your-project
+GCP_LOCATION=europe-west1
 # Ensure you are authenticated with gcloud: `gcloud auth application-default login`
+```
+
+**For Anthropic:**
+
+Create a `.env` file and add:
+
+```properties
+ANTHROPIC_API_KEY=your-api-key
+```
+
+**For GitHub Models (GitHub Copilot):**
+
+Create a `.env` file and add:
+
+```properties
+GITHUB_TOKEN=your-github-token
 ```
 
 ### 3. Run the Application
 
-Use the Maven wrapper to run the project.
+Use the Maven wrapper to run the project with the desired profile:
 
 ```bash
-# Run with OpenAI (default profile)
-./mvnw spring-boot:run
-
-# Or run with a specific profile
+./mvnw spring-boot:run -Popenai
 ./mvnw spring-boot:run -Pvertex-ai
 ./mvnw spring-boot:run -Panthropic
 ./mvnw spring-boot:run -Pollama
