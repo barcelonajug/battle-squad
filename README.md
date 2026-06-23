@@ -39,7 +39,7 @@ Suggested implementation shape:
 1. Keep `HeroSearchTool` and `ArenaManagementTool` as stateless wrappers around `ArenaApiClient`.
 2. Add `spring-ai-agent-utils` and register `TodoWriteTool` alongside those tools in the chat client configuration.
 3. Combine `TodoWriteTool` with `MessageChatMemoryAdvisor` so the agent can keep a persistent optimization checklist while it reasons.
-4. Use `ToolCallAdvisor` with conversation history disabled for tool-heavy runs, and scope the chat memory by `teamId`, `sessionId`, and `roundNo`.
+4. Use `ToolCallingAdvisor` with internal conversation history disabled for tool-heavy runs, and scope the chat memory by `teamId`, `sessionId`, and `roundNo`. The blog post uses the older `ToolCallAdvisor` naming, but current Spring AI docs use `ToolCallingAdvisor`.
 5. Have the system prompt tell the model to maintain a visible optimization checklist and summarize the completed steps in the `reasoning` field that the UI already renders.
 
 That pattern gives you an explicit plan, a durable task list, and a cleaner separation between orchestration and the API tools.
