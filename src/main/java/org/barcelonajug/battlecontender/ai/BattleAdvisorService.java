@@ -2,36 +2,72 @@ package org.barcelonajug.battlecontender.ai;
 
 import org.barcelonajug.battlecontender.ai.tools.ArenaManagementTool;
 import org.barcelonajug.battlecontender.ai.tools.HeroSearchTool;
+import org.springaicommunity.agent.tools.TodoWriteTool;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+import org.springframework.core.Ordered;
 
 import java.util.UUID;
 
 @Service
 public class BattleAdvisorService {
 
-    private final ChatClient chatClient;
+    private static final String SYSTEM_PROMPT = """
+            You are the Battle Contender squad optimizer.
+
+            Use the provided tools to inspect the active session, the round constraints, and the available heroes.
+            Maintain a TodoWriteTool checklist while you work so the squad optimization plan stays explicit and visible.
+            Keep the checklist concise and update it as you move through these phases:
+            1. Load the session and round constraints.
+            2. Search and filter heroes that fit the round rules.
+            3. Compare candidates against budget, team size, roles, and banned tags.
+            4. Pick the final squad and summarize the reasoning.
+
+            Keep the final reasoning field readable for the UI by including the short checklist and the key tradeoffs.
+            Return only a SquadRecommendation with valid structured output.
+            """;
+
     private final HeroSearchTool heroSearchTool;
     private final ArenaManagementTool arenaManagementTool;
+    private final ChatClient.Builder chatClientBuilder;
+    private final TodoWriteTool todoWriteTool;
 
     public BattleAdvisorService(ChatClient.Builder chatClientBuilder,
             HeroSearchTool heroSearchTool,
             ArenaManagementTool arenaManagementTool) {
-        this.chatClient = chatClientBuilder.build();
+        this.chatClientBuilder = chatClientBuilder;
         this.heroSearchTool = heroSearchTool;
         this.arenaManagementTool = arenaManagementTool;
+        this.todoWriteTool = TodoWriteTool.builder().build();
     }
 
     public SquadRecommendation buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
-        // TODO: Workshop Participant Implementation
-        // 1. Define a system prompt template explaining the game rules.
-        // 2. Use this.chatClient.prompt() with the system prompt, passing roundNo and
-        // sessionId as parameters.
-        // 3. Register the tools: heroSearchTool and arenaManagementTool.
-        // 4. Optionally, add SimpleLoggerAdvisor for observability.
-        // 5. Use .call().entity(SquadRecommendation.class) to get structured JSON
-        // output.
+        String conversationId = "%s:%s:%d".formatted(teamId, sessionId, roundNo);
 
-        throw new UnsupportedOperationException("TODO: Implement the AI advisor using Spring AI ChatClient");
+        ChatClient chatClient = chatClientBuilder.clone()
+                .defaultTools(heroSearchTool, arenaManagementTool, todoWriteTool)
+                .defaultAdvisors(
+                        ToolCallingAdvisor.builder().disableInternalConversationHistory().build(),
+                        MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder().maxMessages(500).build())
+                                .order(Ordered.HIGHEST_PRECEDENCE + 1000)
+                                .build())
+                .build();
+
+        return chatClient.prompt()
+                .system(SYSTEM_PROMPT)
+                .user("""
+                        Optimize a battle squad for team %s.
+                        Session: %s
+                        Round: %d
+
+                        Use the TodoWriteTool checklist to keep the optimization steps visible while you work.
+                        """.formatted(teamId, sessionId, roundNo))
+                .advisors(advisors -> advisors.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .call()
+                .entity(SquadRecommendation.class);
     }
 }
