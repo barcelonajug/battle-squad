@@ -10,6 +10,8 @@ This repository contains the `main` branch, which serves as the starter project.
 
 Your goal is to implement the **Spring AI** layer.
 
+For the solution branch, configure `MessageChatMemoryAdvisor` first and then layer `TodoWriteTool` on top of that shared memory. The todo checklist only stays useful if the agent has a durable chat-memory channel backing the optimization run.
+
 ### What You Will Build
 
 1. **AI Tools (`@Tool`)**: Wrap the Arena API endpoints so the LLM can search for heroes and manage arena sessions.
