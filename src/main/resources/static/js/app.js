@@ -32,6 +32,14 @@ $(document).ready(function () {
         $('#error-modal-overlay').removeClass('error-modal-hidden').addClass('open');
     }
 
+    function getErrorDescription(xhr) {
+        return xhr?.responseJSON?.detail
+            || xhr?.responseJSON?.message
+            || xhr?.responseJSON?.error
+            || xhr?.statusText
+            || 'Something went wrong';
+    }
+
     $('#btn-close-error').on('click', function () {
         $('#error-modal-overlay').addClass('error-modal-hidden').removeClass('open');
     });
@@ -73,7 +81,7 @@ $(document).ready(function () {
                 checkAIAvailability();
             },
             error: function (xhr) {
-                showMessage("Registration failed: " + (xhr.responseJSON?.error || xhr.status));
+                showMessage(getErrorDescription(xhr));
             }
         });
     });
@@ -351,7 +359,7 @@ $(document).ready(function () {
                 openSheet();
             },
             error: function (xhr) {
-                showMessage("AI optimization failed: " + (xhr.responseJSON?.error || xhr.statusText));
+                showMessage(getErrorDescription(xhr));
             },
             complete: function () {
                 btn.prop('disabled', false);
@@ -389,7 +397,7 @@ $(document).ready(function () {
             },
             error: function (xhr) {
                 $('#submit-feedback')
-                    .text('❌ Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText))
+                    .text(`❌ ${getErrorDescription(xhr)}`)
                     .addClass('bg-destructive/20 text-destructive')
                     .show();
             },
@@ -444,7 +452,7 @@ $(document).ready(function () {
                 showMessage("Squad submitted successfully to the Arena!", 'success');
             },
             error: function (xhr) {
-                showMessage('Submission failed: ' + (xhr.responseJSON?.error || xhr.statusText));
+                showMessage(getErrorDescription(xhr));
             },
             complete: function () {
                 btn.prop('disabled', false).text('Submit Squad to Arena');
