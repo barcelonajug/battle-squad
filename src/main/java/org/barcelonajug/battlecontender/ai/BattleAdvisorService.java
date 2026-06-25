@@ -11,6 +11,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.core.Ordered;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,6 +33,44 @@ public class BattleAdvisorService {
             Return only a SquadRecommendation with valid structured output.
             """;
 
+    private static final List<DraftingStrategy> STRATEGIES = List.of(
+            new DraftingStrategy(
+                    "balanced-drafter",
+                    "Balanced Draft",
+                    "General-purpose, low-risk composition.",
+                    """
+                            Draft a balanced, low-risk squad.
+                            Prioritize role coverage first, then fit under budget, then general quality.
+                            Avoid fragile tradeoffs unless they materially improve compliance.
+                            """),
+            new DraftingStrategy(
+                    "budget-drafter",
+                    "Budget Saver",
+                    "Minimize spend while staying valid.",
+                    """
+                            Draft the cheapest valid squad you can assemble.
+                            Lock required roles first, preserve budget headroom, and prefer lower-cost substitutes.
+                            Reason explicitly about spare budget remaining after the draft.
+                            """),
+            new DraftingStrategy(
+                    "synergy-drafter",
+                    "Synergy Draft",
+                    "Lean into tags and role interactions allowed by the round.",
+                    """
+                            Draft a synergy-focused squad.
+                            Favor complementary tags, coherent role interactions, and round modifiers when available.
+                            If synergy conflicts with hard constraints, satisfy the constraints first.
+                            """),
+            new DraftingStrategy(
+                    "aggressive-drafter",
+                    "Aggressive Draft",
+                    "Bias toward offensive pressure and higher-impact picks.",
+                    """
+                            Draft an aggressive squad.
+                            Prioritize offensive pressure and high-impact picks while still staying fully valid.
+                            If you must trade off between aggression and legality, legality wins.
+                            """));
+
     private final HeroSearchTool heroSearchTool;
     private final ArenaManagementTool arenaManagementTool;
     private final SquadValidationService squadValidationService;
@@ -48,10 +88,65 @@ public class BattleAdvisorService {
         this.todoWriteTool = TodoWriteTool.builder().build();
     }
 
-    public SquadRecommendation buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
-        String conversationId = "%s:%s:%d".formatted(teamId, sessionId, roundNo);
+    public DraftOptionsResponse buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
+        List<DraftOption> options = STRATEGIES.stream()
+                .map(strategy -> buildDraftOption(teamId, roundNo, sessionId, strategy))
+                .toList();
 
-        ChatClient chatClient = chatClientBuilder.clone()
+        DraftOption recommendedOption = options.stream()
+                .filter(DraftOption::valid)
+                .min(Comparator.comparingInt(option -> option.recommendation().totalCost()))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No drafting strategy produced a valid squad for this round."));
+
+        List<DraftOption> finalizedOptions = options.stream()
+                .map(option -> option.strategyId().equals(recommendedOption.strategyId())
+                        ? new DraftOption(option.strategyId(), option.label(), option.summary(), option.recommendation(),
+                                true, option.valid(), option.violations())
+                        : option)
+                .toList();
+
+        return new DraftOptionsResponse(finalizedOptions, recommendedOption.strategyId());
+    }
+
+    private DraftOption buildDraftOption(UUID teamId, int roundNo, UUID sessionId, DraftingStrategy strategy) {
+        String conversationId = "%s:%s:%d:%s".formatted(teamId, sessionId, roundNo, strategy.id());
+        ChatClient chatClient = buildStrategyClient();
+
+        SquadRecommendation recommendation = chatClient.prompt()
+                .system(SYSTEM_PROMPT + "\n\nStrategy profile:\n" + strategy.instructions())
+                .user("""
+                        Optimize a battle squad for team %s.
+                        Session: %s
+                        Round: %d
+
+                        Strategy profile: %s
+                        Use the TodoWriteTool checklist to keep the optimization steps visible while you work.
+                        """.formatted(teamId, sessionId, roundNo, strategy.label()))
+                .advisors(advisors -> advisors.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .call()
+                .entity(SquadRecommendation.class);
+
+        SquadValidationService.ValidationResult validation = squadValidationService.validateSquad(sessionId, roundNo,
+                recommendation);
+        SquadRecommendation normalizedRecommendation = new SquadRecommendation(
+                recommendation.heroes(),
+                recommendation.strategy(),
+                recommendation.reasoning(),
+                validation.totalCost());
+
+        return new DraftOption(
+                strategy.id(),
+                strategy.label(),
+                strategy.summary(),
+                normalizedRecommendation,
+                false,
+                validation.valid(),
+                validation.violations());
+    }
+
+    private ChatClient buildStrategyClient() {
+        return chatClientBuilder.clone()
                 .defaultTools(heroSearchTool, arenaManagementTool, todoWriteTool)
                 .defaultAdvisors(
                         ToolCallAdvisor.builder().conversationHistoryEnabled(false).build(),
@@ -59,22 +154,8 @@ public class BattleAdvisorService {
                                 .order(Ordered.HIGHEST_PRECEDENCE + 1000)
                                 .build())
                 .build();
+    }
 
-        SquadRecommendation recommendation = chatClient.prompt()
-                .system(SYSTEM_PROMPT)
-                .user("""
-                        Optimize a battle squad for team %s.
-                        Session: %s
-                        Round: %d
-
-                        Use the TodoWriteTool checklist to keep the optimization steps visible while you work.
-                        """.formatted(teamId, sessionId, roundNo))
-                .advisors(advisors -> advisors.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .call()
-                .entity(SquadRecommendation.class);
-
-        int validatedTotalCost = squadValidationService.validateAndCalculateTotalCost(sessionId, roundNo, recommendation);
-        return new SquadRecommendation(recommendation.heroes(), recommendation.strategy(), recommendation.reasoning(),
-                validatedTotalCost);
+    private record DraftingStrategy(String id, String label, String summary, String instructions) {
     }
 }

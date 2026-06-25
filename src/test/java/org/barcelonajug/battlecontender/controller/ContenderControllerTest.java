@@ -54,6 +54,7 @@ class ContenderControllerTest {
     @Test
     void submitSquad_rejectsInvalidSquad() throws Exception {
         UUID teamId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
         doThrow(new IllegalArgumentException("Expected exactly 5 heroes but got 4."))
                 .when(squadValidationService)
                 .validateAndCalculateTotalCost(any(), anyInt(), anyList());
@@ -63,11 +64,12 @@ class ContenderControllerTest {
                         .content("""
                                 {
                                   "teamId": "%s",
+                                  "sessionId": "%s",
                                   "roundNo": 2,
                                   "heroIds": [1, 2, 3, 4],
                                   "strategy": "Test"
                                 }
-                                """.formatted(teamId)))
+                                """.formatted(teamId, sessionId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("Expected exactly 5 heroes but got 4."));
     }

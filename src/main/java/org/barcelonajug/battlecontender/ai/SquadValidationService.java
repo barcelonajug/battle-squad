@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 @Service
 public class SquadValidationService {
 
+    public record ValidationResult(boolean valid, int totalCost, List<String> violations) {
+    }
+
     private final ArenaApiClient arenaApiClient;
 
     public SquadValidationService(ArenaApiClient arenaApiClient) {
@@ -25,6 +28,21 @@ public class SquadValidationService {
     }
 
     public int validateAndCalculateTotalCost(UUID sessionId, int roundNo, List<Integer> heroIds) {
+        ValidationResult result = validateSquad(sessionId, roundNo, heroIds);
+        if (!result.valid()) {
+            throw new IllegalArgumentException("Invalid squad: " + String.join(" ", result.violations()));
+        }
+        return result.totalCost();
+    }
+
+    public int validateAndCalculateTotalCost(UUID sessionId, int roundNo, SquadRecommendation recommendation) {
+        List<Integer> heroIds = recommendation.heroes().stream()
+                .map(SquadRecommendation.HeroRef::id)
+                .toList();
+        return validateAndCalculateTotalCost(sessionId, roundNo, heroIds);
+    }
+
+    public ValidationResult validateSquad(UUID sessionId, int roundNo, List<Integer> heroIds) {
         RoundSpec roundSpec = arenaApiClient.getRound(roundNo, sessionId);
         List<Hero> heroes = loadHeroes(heroIds);
         List<String> violations = new ArrayList<>();
@@ -38,18 +56,14 @@ public class SquadValidationService {
         validateRoleCaps(roundSpec, heroes, violations);
         validateBannedTags(roundSpec, heroes, violations);
 
-        if (!violations.isEmpty()) {
-            throw new IllegalArgumentException("Invalid squad: " + String.join(" ", violations));
-        }
-
-        return totalCost;
+        return new ValidationResult(violations.isEmpty(), totalCost, List.copyOf(violations));
     }
 
-    public int validateAndCalculateTotalCost(UUID sessionId, int roundNo, SquadRecommendation recommendation) {
+    public ValidationResult validateSquad(UUID sessionId, int roundNo, SquadRecommendation recommendation) {
         List<Integer> heroIds = recommendation.heroes().stream()
                 .map(SquadRecommendation.HeroRef::id)
                 .toList();
-        return validateAndCalculateTotalCost(sessionId, roundNo, heroIds);
+        return validateSquad(sessionId, roundNo, heroIds);
     }
 
     private List<Hero> loadHeroes(List<Integer> heroIds) {

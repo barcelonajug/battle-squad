@@ -37,7 +37,7 @@ class BattleAdvisorServiceTest {
     private SquadValidationService squadValidationService;
 
     @Test
-    void buildOptimalSquad_returnsStructuredRecommendation() {
+    void buildOptimalSquad_returnsValidatedDraftOptions() {
         when(chatClientBuilder.clone()).thenReturn(chatClientBuilder);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
@@ -52,14 +52,17 @@ class BattleAdvisorServiceTest {
                 .advisors(org.mockito.ArgumentMatchers.<Consumer<ChatClient.AdvisorSpec>>any())
                 .call()
                 .entity(SquadRecommendation.class)).thenReturn(expected);
-        when(squadValidationService.validateAndCalculateTotalCost(any(), anyInt(), any(SquadRecommendation.class)))
-                .thenReturn(15);
+        when(squadValidationService.validateSquad(any(), anyInt(), any(SquadRecommendation.class)))
+                .thenReturn(new SquadValidationService.ValidationResult(true, 15, List.of()));
 
         BattleAdvisorService service = new BattleAdvisorService(chatClientBuilder, heroSearchTool, arenaManagementTool,
                 squadValidationService);
 
-        SquadRecommendation actual = service.buildOptimalSquad(UUID.randomUUID(), 2, UUID.randomUUID());
+        DraftOptionsResponse actual = service.buildOptimalSquad(UUID.randomUUID(), 2, UUID.randomUUID());
 
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual.options()).hasSize(4);
+        assertThat(actual.recommendedStrategyId()).isEqualTo("balanced-drafter");
+        assertThat(actual.options()).allMatch(DraftOption::valid);
+        assertThat(actual.options()).filteredOn(DraftOption::recommended).hasSize(1);
     }
 }
