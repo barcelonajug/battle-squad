@@ -4,6 +4,7 @@ $(document).ready(function () {
     let currentTeamId = null;
     let activeRoundNo = null;
     let currentRecommendation = null;
+    let currentDraftOptions = [];
 
     // Pagination and Squad State
     let currentPage = 0;
@@ -326,6 +327,64 @@ $(document).ready(function () {
 
     $('#btn-close-sheet, #ai-sheet-overlay').on('click', closeSheet);
 
+    function renderDraftOptions() {
+        const list = $('#ai-option-list');
+        list.empty();
+
+        currentDraftOptions.forEach(option => {
+            const selected = currentRecommendation && currentRecommendation.strategyId === option.strategyId;
+            const statusClass = option.valid ? 'border-primary/30' : 'border-destructive/30';
+            const selectedClass = selected ? 'ring-2 ring-primary bg-primary/5' : 'bg-card';
+            const statusText = option.valid ? 'Valid' : 'Invalid';
+            const badgeClass = option.valid ? 'text-primary' : 'text-destructive';
+
+            list.append(`
+                <button type="button" data-strategy-id="${option.strategyId}"
+                    class="draft-option w-full text-left rounded-md border ${statusClass} ${selectedClass} p-3 transition-colors hover:bg-accent/50">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-semibold">${option.label}</div>
+                            <div class="text-xs text-muted-foreground">${option.summary}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs font-semibold ${badgeClass}">${statusText}</div>
+                            <div class="text-xs text-muted-foreground">Cost ${option.recommendation.totalCost}</div>
+                        </div>
+                    </div>
+                </button>
+            `);
+        });
+
+        $('.draft-option').off('click').on('click', function () {
+            const strategyId = $(this).data('strategyId');
+            const option = currentDraftOptions.find(o => o.strategyId === strategyId);
+            if (!option) return;
+            setSelectedRecommendation(option);
+        });
+    }
+
+    function setSelectedRecommendation(option) {
+        currentRecommendation = option;
+        renderDraftOptions();
+
+        $('#ai-reasoning').text(option.recommendation.reasoning);
+        $('#ai-strategy').text(option.recommendation.strategy);
+        $('#ai-total-cost').text(`Cost: ${option.recommendation.totalCost}`);
+
+        const heroesList = $('#ai-hero-ids');
+        heroesList.empty();
+        option.recommendation.heroes.forEach(h => {
+            heroesList.append(`<li>🦸‍♂️ ${h.name} <span class="text-xs ml-2 opacity-50">(ID: ${h.id})</span></li>`);
+        });
+
+        if (!option.valid) {
+            heroesList.append(`<li class="text-destructive">Violations: ${option.violations.join(' ')}</li>`);
+            $('#btn-submit-squad').prop('disabled', true);
+        } else {
+            $('#btn-submit-squad').prop('disabled', false);
+        }
+    }
+
     $('#btn-ai-optimize').on('click', function () {
         const btn = $(this);
         btn.prop('disabled', true);
@@ -344,17 +403,17 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify(payload),
             success: function (resp) {
-                currentRecommendation = resp;
+                currentDraftOptions = resp.options || [];
+                const recommendedOption = currentDraftOptions.find(o => o.strategyId === resp.recommendedStrategyId)
+                    || currentDraftOptions.find(o => o.recommended)
+                    || currentDraftOptions[0];
 
-                $('#ai-reasoning').text(resp.reasoning);
-                $('#ai-strategy').text(resp.strategy);
-                $('#ai-total-cost').text(`Cost: ${resp.totalCost}`);
+                if (!recommendedOption) {
+                    showMessage('No draft options were produced.');
+                    return;
+                }
 
-                const heroesList = $('#ai-hero-ids');
-                heroesList.empty();
-                resp.heroes.forEach(h => {
-                    heroesList.append(`<li>🦸‍♂️ ${h.name} <span class="text-xs ml-2 opacity-50">(ID: ${h.id})</span></li>`);
-                });
+                setSelectedRecommendation(recommendedOption);
 
                 openSheet();
             },
@@ -371,7 +430,7 @@ $(document).ready(function () {
 
     // 7. Submit Squad
     $('#btn-submit-squad').on('click', function () {
-        if (!currentRecommendation) return;
+        if (!currentRecommendation || !currentRecommendation.valid) return;
 
         const btn = $(this);
         btn.prop('disabled', true).text('Submitting...');
@@ -379,9 +438,10 @@ $(document).ready(function () {
 
         const payload = {
             teamId: currentTeamId,
+            sessionId: currentSessionId,
             roundNo: activeRoundNo,
-            heroIds: currentRecommendation.heroes.map(h => h.id), // map the objects back to IDs
-            strategy: currentRecommendation.strategy
+            heroIds: currentRecommendation.recommendation.heroes.map(h => h.id),
+            strategy: currentRecommendation.recommendation.strategy
         };
 
         $.ajax({
@@ -438,6 +498,7 @@ $(document).ready(function () {
 
         const payload = {
             teamId: currentTeamId,
+            sessionId: currentSessionId,
             roundNo: activeRoundNo,
             heroIds: Array.from(selectedHeroes.keys()),
             strategy: "Manually selected squad"

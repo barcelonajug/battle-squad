@@ -10,6 +10,10 @@ This repository contains the `main` branch, which serves as the starter project.
 
 Your goal is to implement the **Spring AI** layer.
 
+The `main` branch now includes the multi-phase drafting workflow as TODO scaffolding. The `solution` branch contains the full working example, including a visible draft-option list and the complete orchestration flow.
+
+Before wiring `TodoWriteTool`, treat `MessageChatMemoryAdvisor` as a prerequisite in both branches. The todo checklist only remains coherent if the optimization run has a dedicated memory channel scoped by `teamId`, `sessionId`, and `roundNo`.
+
 ### What You Will Build
 
 1. **AI Tools (`@Tool`)**: Wrap the Arena API endpoints so the LLM can search for heroes and manage arena sessions.
@@ -30,19 +34,18 @@ You can verify your implementation by running the provided tests:
 ./mvnw clean test
 ```
 
-### TodoWrite Extension
+### Multi-Phase Workshop Flow
 
-If you want to extend the workshop with Spring AI agentic patterns, wire `TodoWriteTool` into `BattleAdvisorService` instead of the lower-level tools.
+Implement the drafting workflow in these phases:
 
-Suggested implementation shape:
+1. Configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`.
+2. Add `TodoWriteTool` so the agent writes a visible optimization checklist into that shared memory stream.
+3. Keep `HeroSearchTool` and `ArenaManagementTool` stateless and focused on API access only.
+4. Define multiple drafting strategies and execute them separately.
+5. Validate every generated squad deterministically against round constraints.
+6. Return `DraftOptionsResponse` so the UI can show several candidate squads and highlight one recommended option.
 
-1. Configure `MessageChatMemoryAdvisor` first so the agent has a durable memory channel for the optimization run.
-2. Keep `HeroSearchTool` and `ArenaManagementTool` as stateless wrappers around `ArenaApiClient`.
-3. Add `spring-ai-agent-utils` and register `TodoWriteTool` alongside those tools in the chat client configuration.
-4. Use `ToolCallingAdvisor` with internal conversation history disabled for tool-heavy runs, and scope the chat memory by `teamId`, `sessionId`, and `roundNo`. The blog post uses the older `ToolCallAdvisor` naming, but current Spring AI docs use `ToolCallingAdvisor`.
-5. Have the system prompt tell the model to maintain a visible optimization checklist and summarize the completed steps in the `reasoning` field that the UI already renders.
-
-That pattern gives you an explicit plan, a durable task list, and a cleaner separation between orchestration and the API tools.
+The `main` branch leaves these phases as TODOs inside [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). The `solution` branch implements the full workflow.
 
 ## ⚙️ Setup Instructions
 

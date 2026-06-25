@@ -1,6 +1,7 @@
 package org.barcelonajug.battlecontender.controller;
 
 import org.barcelonajug.battlecontender.ai.BattleAdvisorService;
+import org.barcelonajug.battlecontender.ai.DraftOptionsResponse;
 import org.barcelonajug.battlecontender.ai.SquadRecommendation;
 import org.barcelonajug.battlecontender.client.ArenaApiClient;
 import org.barcelonajug.battlecontender.model.*;
@@ -60,7 +61,7 @@ public class ContenderController {
     }
 
     @PostMapping("/optimize")
-    public SquadRecommendation optimizeSquad(@RequestBody OptimizeRequest request) {
+    public DraftOptionsResponse optimizeSquad(@RequestBody OptimizeRequest request) {
         return battleAdvisorService.buildOptimalSquad(
                 request.teamId(),
                 request.roundNo(),
@@ -82,6 +83,6 @@ public class ContenderController {
     public record OptimizeRequest(UUID teamId, int roundNo, UUID sessionId) {
     }
 
-    public record SubmitRequest(UUID teamId, int roundNo, List<Integer> heroIds, String strategy) {
+    public record SubmitRequest(UUID teamId, UUID sessionId, int roundNo, List<Integer> heroIds, String strategy) {
     }
 }
