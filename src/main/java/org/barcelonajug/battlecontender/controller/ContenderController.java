@@ -2,6 +2,7 @@ package org.barcelonajug.battlecontender.controller;
 
 import org.barcelonajug.battlecontender.ai.BattleAdvisorService;
 import org.barcelonajug.battlecontender.ai.SquadRecommendation;
+import org.barcelonajug.battlecontender.ai.SquadValidationService;
 import org.barcelonajug.battlecontender.client.ArenaApiClient;
 import org.barcelonajug.battlecontender.model.*;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,13 @@ public class ContenderController {
 
     private final ArenaApiClient arenaApiClient;
     private final BattleAdvisorService battleAdvisorService;
+    private final SquadValidationService squadValidationService;
 
-    public ContenderController(ArenaApiClient arenaApiClient, BattleAdvisorService battleAdvisorService) {
+    public ContenderController(ArenaApiClient arenaApiClient, BattleAdvisorService battleAdvisorService,
+            SquadValidationService squadValidationService) {
         this.arenaApiClient = arenaApiClient;
         this.battleAdvisorService = battleAdvisorService;
+        this.squadValidationService = squadValidationService;
     }
 
     @PostMapping("/register")
@@ -69,6 +73,10 @@ public class ContenderController {
 
     @PostMapping("/submit")
     public ResponseEntity<Void> submitSquad(@RequestBody SubmitRequest request) {
+        squadValidationService.validateAndCalculateTotalCost(
+                request.teamId(),
+                request.roundNo(),
+                request.heroIds());
         DraftSubmission submission = new DraftSubmission(request.heroIds(), request.strategy());
         arenaApiClient.submitSquad(request.roundNo(), request.teamId(), submission);
         return ResponseEntity.ok().build();

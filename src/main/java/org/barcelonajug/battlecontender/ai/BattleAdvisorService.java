@@ -4,7 +4,7 @@ import org.barcelonajug.battlecontender.ai.tools.ArenaManagementTool;
 import org.barcelonajug.battlecontender.ai.tools.HeroSearchTool;
 import org.springaicommunity.agent.tools.TodoWriteTool;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -33,15 +33,18 @@ public class BattleAdvisorService {
 
     private final HeroSearchTool heroSearchTool;
     private final ArenaManagementTool arenaManagementTool;
+    private final SquadValidationService squadValidationService;
     private final ChatClient.Builder chatClientBuilder;
     private final TodoWriteTool todoWriteTool;
 
     public BattleAdvisorService(ChatClient.Builder chatClientBuilder,
             HeroSearchTool heroSearchTool,
-            ArenaManagementTool arenaManagementTool) {
+            ArenaManagementTool arenaManagementTool,
+            SquadValidationService squadValidationService) {
         this.chatClientBuilder = chatClientBuilder;
         this.heroSearchTool = heroSearchTool;
         this.arenaManagementTool = arenaManagementTool;
+        this.squadValidationService = squadValidationService;
         this.todoWriteTool = TodoWriteTool.builder().build();
     }
 
@@ -51,13 +54,13 @@ public class BattleAdvisorService {
         ChatClient chatClient = chatClientBuilder.clone()
                 .defaultTools(heroSearchTool, arenaManagementTool, todoWriteTool)
                 .defaultAdvisors(
-                        ToolCallingAdvisor.builder().disableInternalConversationHistory().build(),
+                        ToolCallAdvisor.builder().conversationHistoryEnabled(false).build(),
                         MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder().maxMessages(500).build())
                                 .order(Ordered.HIGHEST_PRECEDENCE + 1000)
                                 .build())
                 .build();
 
-        return chatClient.prompt()
+        SquadRecommendation recommendation = chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user("""
                         Optimize a battle squad for team %s.
@@ -69,5 +72,9 @@ public class BattleAdvisorService {
                 .advisors(advisors -> advisors.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()
                 .entity(SquadRecommendation.class);
+
+        int validatedTotalCost = squadValidationService.validateAndCalculateTotalCost(sessionId, roundNo, recommendation);
+        return new SquadRecommendation(recommendation.heroes(), recommendation.strategy(), recommendation.reasoning(),
+                validatedTotalCost);
     }
 }

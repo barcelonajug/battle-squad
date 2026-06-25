@@ -36,6 +36,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Not Implemented", "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleValidationError(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "Invalid squad", "detail", ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericError(Exception ex) {
         log.error("Unexpected error", ex);

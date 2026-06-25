@@ -11,8 +11,11 @@ import org.springframework.ai.chat.client.ChatClient;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,8 +33,12 @@ class BattleAdvisorServiceTest {
     @Mock
     private ArenaManagementTool arenaManagementTool;
 
+    @Mock
+    private SquadValidationService squadValidationService;
+
     @Test
     void buildOptimalSquad_returnsStructuredRecommendation() {
+        when(chatClientBuilder.clone()).thenReturn(chatClientBuilder);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
         SquadRecommendation expected = new SquadRecommendation(
@@ -42,11 +49,14 @@ class BattleAdvisorServiceTest {
         when(chatClient.prompt()
                 .system(org.mockito.ArgumentMatchers.anyString())
                 .user(org.mockito.ArgumentMatchers.anyString())
-                .advisors(org.mockito.ArgumentMatchers.any())
+                .advisors(org.mockito.ArgumentMatchers.<Consumer<ChatClient.AdvisorSpec>>any())
                 .call()
                 .entity(SquadRecommendation.class)).thenReturn(expected);
+        when(squadValidationService.validateAndCalculateTotalCost(any(), anyInt(), any(SquadRecommendation.class)))
+                .thenReturn(15);
 
-        BattleAdvisorService service = new BattleAdvisorService(chatClientBuilder, heroSearchTool, arenaManagementTool);
+        BattleAdvisorService service = new BattleAdvisorService(chatClientBuilder, heroSearchTool, arenaManagementTool,
+                squadValidationService);
 
         SquadRecommendation actual = service.buildOptimalSquad(UUID.randomUUID(), 2, UUID.randomUUID());
 
