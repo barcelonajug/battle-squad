@@ -10,6 +10,8 @@ This repository contains the `main` branch, which serves as the starter project.
 
 Your goal is to implement the **Spring AI** layer.
 
+The `main` branch contains the phased TODO version of the drafting workflow. The `solution` branch contains the full working implementation of the same phases.
+
 For the solution branch, configure `MessageChatMemoryAdvisor` first and then layer `TodoWriteTool` on top of that shared memory. The todo checklist only stays useful if the agent has a durable chat-memory channel backing the optimization run.
 
 ### What You Will Build
@@ -31,6 +33,20 @@ You can verify your implementation by running the provided tests:
 ```bash
 ./mvnw clean test
 ```
+
+### Multi-Phase Workflow
+
+The drafting flow is intentionally split into phases:
+
+1. Configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`.
+2. Register `TodoWriteTool` so the optimizer keeps a visible checklist while it works.
+3. Keep `HeroSearchTool` and `ArenaManagementTool` stateless and focused on API access.
+4. Run multiple drafting strategies independently.
+5. Validate each generated squad deterministically against round constraints.
+6. Choose one recommended valid option.
+7. Return the candidate list as `DraftOptionsResponse` so the UI can let the user inspect the alternatives.
+
+On `main`, those phases appear as TODO steps in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, they are implemented directly in the same service.
 
 ## ⚙️ Setup Instructions
 

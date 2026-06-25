@@ -89,29 +89,21 @@ public class BattleAdvisorService {
     }
 
     public DraftOptionsResponse buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
-        List<DraftOption> options = STRATEGIES.stream()
-                .map(strategy -> buildDraftOption(teamId, roundNo, sessionId, strategy))
-                .toList();
-
-        DraftOption recommendedOption = options.stream()
-                .filter(DraftOption::valid)
-                .min(Comparator.comparingInt(option -> option.recommendation().totalCost()))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No drafting strategy produced a valid squad for this round."));
-
-        List<DraftOption> finalizedOptions = options.stream()
-                .map(option -> option.strategyId().equals(recommendedOption.strategyId())
-                        ? new DraftOption(option.strategyId(), option.label(), option.summary(), option.recommendation(),
-                                true, option.valid(), option.violations())
-                        : option)
-                .toList();
-
-        return new DraftOptionsResponse(finalizedOptions, recommendedOption.strategyId());
+        List<DraftOption> options = phase4RunDraftingStrategies(teamId, roundNo, sessionId);
+        DraftOption recommendedOption = phase6ChooseRecommendedOption(options);
+        return phase7BuildDraftOptionsResponse(options, recommendedOption);
     }
 
-    private DraftOption buildDraftOption(UUID teamId, int roundNo, UUID sessionId, DraftingStrategy strategy) {
+    private List<DraftOption> phase4RunDraftingStrategies(UUID teamId, int roundNo, UUID sessionId) {
+        return STRATEGIES.stream()
+                .map(strategy -> phase5BuildValidatedDraftOption(teamId, roundNo, sessionId, strategy))
+                .toList();
+    }
+
+    private DraftOption phase5BuildValidatedDraftOption(UUID teamId, int roundNo, UUID sessionId,
+            DraftingStrategy strategy) {
         String conversationId = "%s:%s:%d:%s".formatted(teamId, sessionId, roundNo, strategy.id());
-        ChatClient chatClient = buildStrategyClient();
+        ChatClient chatClient = phase1BuildStrategyClient();
 
         SquadRecommendation recommendation = chatClient.prompt()
                 .system(SYSTEM_PROMPT + "\n\nStrategy profile:\n" + strategy.instructions())
@@ -145,7 +137,27 @@ public class BattleAdvisorService {
                 validation.violations());
     }
 
-    private ChatClient buildStrategyClient() {
+    private DraftOption phase6ChooseRecommendedOption(List<DraftOption> options) {
+        return options.stream()
+                .filter(DraftOption::valid)
+                .min(Comparator.comparingInt(option -> option.recommendation().totalCost()))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No drafting strategy produced a valid squad for this round."));
+    }
+
+    private DraftOptionsResponse phase7BuildDraftOptionsResponse(List<DraftOption> options,
+            DraftOption recommendedOption) {
+        List<DraftOption> finalizedOptions = options.stream()
+                .map(option -> option.strategyId().equals(recommendedOption.strategyId())
+                        ? new DraftOption(option.strategyId(), option.label(), option.summary(), option.recommendation(),
+                                true, option.valid(), option.violations())
+                        : option)
+                .toList();
+
+        return new DraftOptionsResponse(finalizedOptions, recommendedOption.strategyId());
+    }
+
+    private ChatClient phase1BuildStrategyClient() {
         return chatClientBuilder.clone()
                 .defaultTools(heroSearchTool, arenaManagementTool, todoWriteTool)
                 .defaultAdvisors(
