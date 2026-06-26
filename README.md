@@ -19,10 +19,10 @@ Before wiring `TodoWriteTool`, treat `MessageChatMemoryAdvisor` as a prerequisit
 Build the workshop in this order:
 
 1. **Build the tools**
-Implement the Arena API wrappers in [`HeroSearchTool.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java) and [`ArenaManagementTool.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java). Keep them stateless and focused on API access only.
+Implement the Arena API wrappers in [`HeroSearchTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java) and [`ArenaManagementTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java). Keep them stateless and focused on API access only.
 
 2. **Configure `BattleAdvisorService`**
-Wire those tools into [`BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return structured output that the UI can render.
+Wire those tools into [`BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return structured output that the UI can render.
 
 3. **Add chat memory first**
 Before using `TodoWriteTool`, configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`. This is required so the optimization run has one dedicated memory channel.
