@@ -14,40 +14,46 @@ The `main` branch now includes the multi-phase drafting workflow as TODO scaffol
 
 Before wiring `TodoWriteTool`, treat `MessageChatMemoryAdvisor` as a prerequisite in both branches. The todo checklist only remains coherent if the optimization run has a dedicated memory channel scoped by `teamId`, `sessionId`, and `roundNo`.
 
-### What You Will Build
+### Implementation Order
 
-1. **AI Tools (`@Tool`)**: Wrap the Arena API endpoints so the LLM can search for heroes and manage arena sessions.
-2. **AI Service Layer**: Configure the Spring AI `ChatClient` with a system prompt and your `@Tool` components.
-3. **Structured Output**: Direct the AI to parse its reasoning and squad selection into a Java Record (`SquadRecommendation`).
+Build the workshop in this order:
 
-### TODO Locations
+1. **Build the tools**
+Implement the Arena API wrappers in [`HeroSearchTool.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java) and [`ArenaManagementTool.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java). Keep them stateless and focused on API access only.
 
-Look for `UnsupportedOperationException("TODO:...")` in the codebase. The primary files you need to modify are:
+2. **Configure `BattleAdvisorService`**
+Wire those tools into [`BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return structured output that the UI can render.
+
+3. **Add chat memory first**
+Before using `TodoWriteTool`, configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`. This is required so the optimization run has one dedicated memory channel.
+
+4. **Add `TodoWriteTool` on top of chat memory**
+Once chat memory is in place, register `TodoWriteTool` so the agent can maintain a visible optimization checklist while it works. The intent is: memory stores the conversation for the run, and TodoWrite exposes the current task list inside that same run.
+
+5. **Use round-aware hero search**
+The arena v3 API adds allowed roles, genders, races, publishers, and alignments to `RoundSpec`, plus `/api/heroes/search/advanced`. In this branch, the model and client already support those fields. The remaining TODO is to make the tools use round-aware advanced search so the drafter starts from candidates that already fit the round.
+
+6. **Validate every draft deterministically**
+After the model drafts a squad, validate it against team size, budget, required roles, banned tags, and the new allowed-value constraints before presenting the result or submitting it.
+
+7. **Expose multiple draft options**
+Return `DraftOptionsResponse` so the UI can show several candidate squads and highlight the recommended one.
+
+### Starter Branch Notes
+
+Look for `UnsupportedOperationException("TODO:...")` in the codebase. The main workshop files are:
 
 * `src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java`
 * `src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java`
 * `src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`
 
-You can verify your implementation by running the provided tests:
+The `main` branch keeps these steps as attendee-facing TODOs. The `solution` branch implements the same workflow end to end.
+
+You can verify your implementation by running:
 
 ```bash
 ./mvnw clean test
 ```
-
-### Multi-Phase Workshop Flow
-
-Implement the drafting workflow in these phases:
-
-1. Configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`.
-2. Add `TodoWriteTool` so the agent writes a visible optimization checklist into that shared memory stream.
-3. Keep `HeroSearchTool` and `ArenaManagementTool` stateless and focused on API access only.
-4. Define multiple drafting strategies and execute them separately.
-5. Validate every generated squad deterministically against round constraints.
-6. Return `DraftOptionsResponse` so the UI can show several candidate squads and highlight one recommended option.
-
-The `main` branch leaves these phases as TODOs inside [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). The `solution` branch implements the full workflow.
-
-The arena v3 API adds allowed roles, genders, races, publishers, and alignments to `RoundSpec`, plus `/api/heroes/search/advanced`. In this branch, the model and client support those fields, while `HeroSearchTool` and the validation phase intentionally leave TODOs for attendees to wire round-aware advanced search and deterministic allowed-value checks.
 
 ## ⚙️ Setup Instructions
 
