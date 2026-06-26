@@ -47,6 +47,8 @@ Implement the drafting workflow in these phases:
 
 The `main` branch leaves these phases as TODOs inside [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). The `solution` branch implements the full workflow.
 
+The arena v3 API adds allowed roles, genders, races, publishers, and alignments to `RoundSpec`, plus `/api/heroes/search/advanced`. In this branch, the model and client support those fields, while `HeroSearchTool` and the validation phase intentionally leave TODOs for attendees to wire round-aware advanced search and deterministic allowed-value checks.
+
 ## ⚙️ Setup Instructions
 
 ### Prerequisites

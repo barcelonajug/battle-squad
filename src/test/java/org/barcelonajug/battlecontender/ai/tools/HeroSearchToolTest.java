@@ -33,4 +33,20 @@ class HeroSearchToolTest {
                 .isInstanceOf(UnsupportedOperationException.class)
                 .hasMessageContaining("TODO: Implement this tool");
     }
+
+    @Test
+    void advancedSearchHeroes_throwsUnsupportedOperationException_initially() {
+        assertThatThrownBy(() -> heroSearchTool.advancedSearchHeroes(
+                "Spider", "good", "Marvel Comics", "Fighter", "Male", "Human", 20, "cost", "ASC"))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("TODO: Implement this tool");
+    }
+
+    @Test
+    void findHeroesForRound_throwsUnsupportedOperationException_initially() {
+        assertThatThrownBy(() -> heroSearchTool.findHeroesForRound(
+                "210d51b2-8d1e-41fa-8bf6-64878f2ab3bf", 1, null, null, null, "cost"))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("TODO: Implement this tool");
+    }
 }

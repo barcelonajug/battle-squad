@@ -51,6 +51,9 @@ public class BattleAdvisorService {
         // TODO Phase 5: Create one prompt per drafting strategy.
         // Each strategy should return a SquadRecommendation with reasoning, strategy, and
         // selected heroes.
+        // The prompt should require findHeroesForRound before drafting so the agent uses
+        // /api/heroes/search/advanced with the round's allowed roles, genders, races,
+        // publishers, alignments, and budget.
 
         // TODO Phase 6: Add deterministic validation after each AI draft.
         // Validate:
@@ -58,6 +61,7 @@ public class BattleAdvisorService {
         // - total cost under the round budget
         // - role requirements satisfied
         // - banned tags and round-specific constraints obeyed
+        // - allowed roles, genders, races, publishers, and alignments obeyed
 
         // TODO Phase 7: Wrap every result into DraftOption and return
         // DraftOptionsResponse.

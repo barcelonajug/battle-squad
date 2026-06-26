@@ -131,6 +131,22 @@ $(document).ready(function () {
             let bansHtml = '';
             if (spec.bannedTags) spec.bannedTags.forEach(t => bansHtml += `<span class="text-destructive bg-destructive/10 px-2 py-0.5 rounded mr-1">${t}</span>`);
 
+            const allowedHtml = [
+                ['Roles', spec.allowedRoles],
+                ['Genders', spec.allowedGenders],
+                ['Races', spec.allowedRaces],
+                ['Publishers', spec.allowedPublishers],
+                ['Alignments', spec.allowedAlignments]
+            ]
+                .filter(([, values]) => values && values.length > 0)
+                .map(([label, values]) => `
+                    <div>
+                        <div class="font-semibold text-foreground text-xs uppercase mb-1">Allowed ${label}</div>
+                        ${values.map(v => `<span class="bg-accent px-2 py-0.5 rounded mr-1">${v}</span>`).join('')}
+                    </div>
+                `)
+                .join('');
+
             $('#round-constraints-container').html(`
                 <div class="space-y-3">
                     <div><span class="font-semibold text-foreground">Mission:</span> ${spec.description}</div>
@@ -146,6 +162,7 @@ $(document).ready(function () {
                     </div>
                     ${rolesHtml ? `<div><div class="font-semibold text-foreground text-xs uppercase mb-1">Required Roles</div>${rolesHtml}</div>` : ''}
                     ${bansHtml ? `<div><div class="font-semibold text-foreground text-xs uppercase mb-1">Banned Tags</div>${bansHtml}</div>` : ''}
+                    ${allowedHtml}
                 </div>
             `);
         });
