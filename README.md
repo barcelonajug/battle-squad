@@ -41,7 +41,7 @@ The final response is `DraftOptionsResponse`, which lets the UI present several 
 
 ### Branch Notes
 
-On `main`, the same steps appear as attendee-facing TODOs in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, they are implemented end to end.
+On `main`, the same steps appear as attendee-facing TODOs in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, they are implemented end to end.
 
 You can verify the implementation by running:
 
