@@ -22,11 +22,13 @@ public class BattleAdvisorService {
             You are the Battle Contender squad optimizer.
 
             Use the provided tools to inspect the active session, the round constraints, and the available heroes.
+            Use findHeroesForRound before drafting so candidate heroes are filtered by the round's allowed roles, genders, races, publishers, alignments, and budget.
+            Use getHeroDetails only for final verification or deeper inspection of finalists.
             Maintain a TodoWriteTool checklist while you work so the squad optimization plan stays explicit and visible.
             Keep the checklist concise and update it as you move through these phases:
             1. Load the session and round constraints.
-            2. Search and filter heroes that fit the round rules.
-            3. Compare candidates against budget, team size, roles, and banned tags.
+            2. Use round-aware advanced search to find heroes that fit the round rules.
+            3. Compare candidates against budget, team size, roles, banned tags, and allowed attributes.
             4. Pick the final squad and summarize the reasoning.
 
             Keep the final reasoning field readable for the UI by including the short checklist and the key tradeoffs.
@@ -114,6 +116,7 @@ public class BattleAdvisorService {
 
                         Strategy profile: %s
                         Use the TodoWriteTool checklist to keep the optimization steps visible while you work.
+                        Start with findHeroesForRound for constrained candidate discovery.
                         """.formatted(teamId, sessionId, roundNo, strategy.label()))
                 .advisors(advisors -> advisors.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()

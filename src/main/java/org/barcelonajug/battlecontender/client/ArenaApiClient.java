@@ -4,7 +4,7 @@ import org.barcelonajug.battlecontender.model.*;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriBuilder;
 
 import java.util.List;
 import java.util.UUID;
@@ -59,6 +59,45 @@ public class ArenaApiClient {
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
+    }
+
+    public List<Hero> advancedSearchHeroes(AdvancedHeroSearchCriteria criteria) {
+        AdvancedHeroSearchResponse response = restClient.get()
+                .uri(builder -> {
+                    builder.path("/api/heroes/search/advanced");
+                    addParam(builder, "name", criteria.name());
+                    addParam(builder, "alignment", criteria.alignment());
+                    addParam(builder, "publisher", criteria.publisher());
+                    addParam(builder, "role", criteria.role());
+                    addParam(builder, "gender", criteria.gender());
+                    addParam(builder, "race", criteria.race());
+                    addParam(builder, "minCost", criteria.minCost());
+                    addParam(builder, "maxCost", criteria.maxCost());
+                    addParam(builder, "minPower", criteria.minPower());
+                    addParam(builder, "maxPower", criteria.maxPower());
+                    addParam(builder, "minStrength", criteria.minStrength());
+                    addParam(builder, "maxStrength", criteria.maxStrength());
+                    addParam(builder, "minSpeed", criteria.minSpeed());
+                    addParam(builder, "maxSpeed", criteria.maxSpeed());
+                    addParam(builder, "minIntelligence", criteria.minIntelligence());
+                    addParam(builder, "maxIntelligence", criteria.maxIntelligence());
+                    addParam(builder, "minDurability", criteria.minDurability());
+                    addParam(builder, "maxDurability", criteria.maxDurability());
+                    addParam(builder, "minCombat", criteria.minCombat());
+                    addParam(builder, "maxCombat", criteria.maxCombat());
+                    addParam(builder, "page", criteria.page());
+                    addParam(builder, "size", criteria.size());
+                    addParam(builder, "sortBy", criteria.sortBy());
+                    addParam(builder, "sortDirection", criteria.sortDirection());
+                    return builder.build();
+                })
+                .retrieve()
+                .body(AdvancedHeroSearchResponse.class);
+
+        if (response == null || response._embedded() == null || response._embedded().heroList() == null) {
+            return List.of();
+        }
+        return response._embedded().heroList();
     }
 
     public Session getActiveSession() {
@@ -140,5 +179,21 @@ public class ArenaApiClient {
                         .build(roundNo))
                 .retrieve()
                 .body(DraftSubmission.class);
+    }
+
+    private void addParam(UriBuilder builder, String name, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (value instanceof String stringValue && stringValue.isBlank()) {
+            return;
+        }
+        builder.queryParam(name, value);
+    }
+
+    private record AdvancedHeroSearchResponse(EmbeddedHeroes _embedded) {
+    }
+
+    private record EmbeddedHeroes(List<Hero> heroList) {
     }
 }

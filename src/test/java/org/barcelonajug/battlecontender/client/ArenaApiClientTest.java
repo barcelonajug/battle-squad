@@ -52,4 +52,51 @@ class ArenaApiClientTest {
     assertThat(hero.role()).isEqualTo("Tank");
     assertThat(hero.cost()).isEqualTo(15);
   }
+
+  @Test
+  void advancedSearchHeroes_parsesHateoasHeroList() {
+    String mockJsonResponse = """
+        {
+          "_embedded": {
+            "heroList": [
+              {
+                "id": 1,
+                "name": "Superman",
+                "slug": "superman",
+                "role": "Tank",
+                "cost": 15,
+                "alignment": "good",
+                "publisher": "DC Comics"
+              },
+              {
+                "id": 2,
+                "name": "Wonder Woman",
+                "slug": "wonder-woman",
+                "role": "Fighter",
+                "cost": 12,
+                "alignment": "good",
+                "publisher": "DC Comics"
+              }
+            ]
+          }
+        }
+        """;
+
+    this.server.expect(requestTo("https://test.arena.local/api/heroes/search/advanced?name=man&publisher=DC%20Comics&role=Tank&maxCost=20&page=0&size=20&sortBy=cost&sortDirection=ASC"))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
+
+    var heroes = arenaApiClient.advancedSearchHeroes(new AdvancedHeroSearchCriteria(
+        "man", null, "DC Comics", "Tank", null, null,
+        null, 20,
+        null, null,
+        null, null,
+        null, null,
+        null, null,
+        null, null,
+        null, null,
+        0, 20, "cost", "ASC"));
+
+    assertThat(heroes).extracting(Hero::name).containsExactly("Superman", "Wonder Woman");
+  }
 }

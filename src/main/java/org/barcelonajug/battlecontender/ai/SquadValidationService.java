@@ -55,6 +55,13 @@ public class SquadValidationService {
         validateRequiredRoles(roundSpec, heroes, violations);
         validateRoleCaps(roundSpec, heroes, violations);
         validateBannedTags(roundSpec, heroes, violations);
+        validateAllowedValues("role", roundSpec.allowedRoles(), heroes, hero -> hero.role(), violations);
+        validateAllowedValues("gender", roundSpec.allowedGenders(), heroes,
+                hero -> hero.appearance() == null ? null : hero.appearance().gender(), violations);
+        validateAllowedValues("race", roundSpec.allowedRaces(), heroes,
+                hero -> hero.appearance() == null ? null : hero.appearance().race(), violations);
+        validateAllowedValues("publisher", roundSpec.allowedPublishers(), heroes, hero -> hero.publisher(), violations);
+        validateAllowedValues("alignment", roundSpec.allowedAlignments(), heroes, hero -> hero.alignment(), violations);
 
         return new ValidationResult(violations.isEmpty(), totalCost, List.copyOf(violations));
     }
@@ -162,7 +169,36 @@ public class SquadValidationService {
         return counts;
     }
 
+    private void validateAllowedValues(String label, List<String> allowedValues, List<Hero> heroes,
+            HeroValueExtractor extractor, List<String> violations) {
+        if (allowedValues == null || allowedValues.isEmpty()) {
+            return;
+        }
+
+        Set<String> normalizedAllowedValues = allowedValues.stream()
+                .map(this::normalize)
+                .collect(Collectors.toSet());
+
+        for (Hero hero : heroes) {
+            String value = extractor.extract(hero);
+            if (value == null || value.isBlank()) {
+                violations.add(hero.name() + " is missing " + label + ", but this round restricts allowed "
+                        + label + " values to " + String.join(", ", allowedValues) + ".");
+                continue;
+            }
+            if (!normalizedAllowedValues.contains(normalize(value))) {
+                violations.add(hero.name() + " has " + label + " " + value
+                        + ", which is not allowed. Allowed values: " + String.join(", ", allowedValues) + ".");
+            }
+        }
+    }
+
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    @FunctionalInterface
+    private interface HeroValueExtractor {
+        String extract(Hero hero);
     }
 }

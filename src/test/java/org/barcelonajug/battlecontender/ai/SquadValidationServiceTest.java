@@ -1,6 +1,7 @@
 package org.barcelonajug.battlecontender.ai;
 
 import org.barcelonajug.battlecontender.client.ArenaApiClient;
+import org.barcelonajug.battlecontender.model.Appearance;
 import org.barcelonajug.battlecontender.model.Hero;
 import org.barcelonajug.battlecontender.model.RoundSpec;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,61 @@ class SquadValidationServiceTest {
                 .hasMessageContaining("Budget exceeded");
     }
 
+    @Test
+    void validateAndCalculateTotalCost_rejectsHeroesOutsideAllowedConstraints() {
+        UUID sessionId = UUID.randomUUID();
+        RoundSpec roundSpec = new RoundSpec(
+                "Allowed values round",
+                1,
+                30,
+                Map.of(),
+                Map.of(),
+                List.of(),
+                Map.of(),
+                "city",
+                List.of("Tank"),
+                List.of("Female"),
+                List.of("Kryptonian"),
+                List.of("DC Comics"),
+                List.of("good"));
+        when(arenaApiClient.getRound(3, sessionId)).thenReturn(roundSpec);
+        when(arenaApiClient.getHero(1)).thenReturn(new Hero(1, "Mismatch", "mismatch", null, "Support", 10,
+                "bad", "Marvel", new Appearance("Male", "Human", null, null, null, null), null, List.of(), null));
+
+        assertThatThrownBy(() -> squadValidationService.validateAndCalculateTotalCost(sessionId, 3, List.of(1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Mismatch has role Support")
+                .hasMessageContaining("Mismatch has gender Male")
+                .hasMessageContaining("Mismatch has race Human")
+                .hasMessageContaining("Mismatch has publisher Marvel")
+                .hasMessageContaining("Mismatch has alignment bad");
+    }
+
+    @Test
+    void validateAndCalculateTotalCost_treatsNullAndEmptyAllowedConstraintsAsUnrestricted() {
+        UUID sessionId = UUID.randomUUID();
+        RoundSpec roundSpec = new RoundSpec(
+                "Unrestricted round",
+                1,
+                30,
+                Map.of(),
+                Map.of(),
+                List.of(),
+                Map.of(),
+                "city",
+                null,
+                List.of(),
+                null,
+                List.of(),
+                null);
+        when(arenaApiClient.getRound(4, sessionId)).thenReturn(roundSpec);
+        when(arenaApiClient.getHero(1)).thenReturn(hero(1, "Flexible", "Support", 10, List.of()));
+
+        assertThat(squadValidationService.validateAndCalculateTotalCost(sessionId, 4, List.of(1))).isEqualTo(10);
+    }
+
     private static Hero hero(int id, String name, String role, int cost, List<String> tags) {
-        return new Hero(id, name, name.toLowerCase(), null, role, cost, "good", "Marvel", null, null, tags, null);
+        return new Hero(id, name, name.toLowerCase(), null, role, cost, "good", "Marvel",
+                new Appearance("Female", "Human", null, null, null, null), null, tags, null);
     }
 }

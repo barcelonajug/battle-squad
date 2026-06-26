@@ -48,6 +48,8 @@ The drafting flow is intentionally split into phases:
 
 On `main`, those phases appear as TODO steps in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](/Users/anyulled/Documents/Battle Squad/battle-squad-main/src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, they are implemented directly in the same service.
 
+The solution branch also supports the arena v3 round constraints. `RoundSpec` includes allowed roles, genders, races, publishers, and alignments; `SquadValidationService` rejects squads that violate those constraints; and `HeroSearchTool` exposes round-aware advanced search so the drafter starts from candidates that already fit the round.
+
 ## ⚙️ Setup Instructions
 
 ### Prerequisites

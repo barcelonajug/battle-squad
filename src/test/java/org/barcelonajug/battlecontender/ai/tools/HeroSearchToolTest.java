@@ -1,7 +1,10 @@
 package org.barcelonajug.battlecontender.ai.tools;
 
+import org.barcelonajug.battlecontender.client.AdvancedHeroSearchCriteria;
 import org.barcelonajug.battlecontender.client.ArenaApiClient;
+import org.barcelonajug.battlecontender.model.Appearance;
 import org.barcelonajug.battlecontender.model.Hero;
+import org.barcelonajug.battlecontender.model.RoundSpec;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -78,8 +83,66 @@ class HeroSearchToolTest {
         verify(arenaApiClient).getHero(42);
     }
 
+    @Test
+    void advancedSearchHeroes_mapsFilteredResults() {
+        var criteria = new AdvancedHeroSearchCriteria(
+                "spider", "good", "Marvel Comics", "Fighter", "Male", "Human",
+                null, 25,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                0, 20, "cost", "ASC");
+        when(arenaApiClient.advancedSearchHeroes(criteria)).thenReturn(List.of(hero(101, "Spider-Man")));
+
+        var summaries = heroSearchTool.advancedSearchHeroes(
+                "spider", "good", "Marvel Comics", "Fighter", "Male", "Human", 25, "cost", "ASC");
+
+        assertThat(summaries).extracting(HeroSearchTool.HeroSummary::name).containsExactly("Spider-Man");
+        verify(arenaApiClient).advancedSearchHeroes(criteria);
+    }
+
+    @Test
+    void findHeroesForRound_appliesAllowedRoundFilters() {
+        UUID sessionId = UUID.randomUUID();
+        RoundSpec roundSpec = new RoundSpec(
+                "Restricted round",
+                2,
+                50,
+                Map.of(),
+                Map.of(),
+                List.of(),
+                Map.of(),
+                "city",
+                List.of("Fighter"),
+                List.of("Male"),
+                List.of("Human"),
+                List.of("Marvel Comics"),
+                List.of("good"));
+        var criteria = new AdvancedHeroSearchCriteria(
+                null, "good", "Marvel Comics", "Fighter", "Male", "Human",
+                null, 50,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                0, 20, "cost", "ASC");
+        when(arenaApiClient.getRound(3, sessionId)).thenReturn(roundSpec);
+        when(arenaApiClient.advancedSearchHeroes(criteria)).thenReturn(List.of(hero(101, "Spider-Man")));
+
+        var summaries = heroSearchTool.findHeroesForRound(sessionId.toString(), 3, null, null, null, "cost");
+
+        assertThat(summaries).extracting(HeroSearchTool.HeroSummary::name).containsExactly("Spider-Man");
+        verify(arenaApiClient).advancedSearchHeroes(criteria);
+    }
+
     private static Hero hero(int id, String name) {
-        return new Hero(id, name, name.toLowerCase(), null, "Support", 10, "good", "Marvel Comics", null, null,
+        return new Hero(id, name, name.toLowerCase(), null, "Support", 10, "good", "Marvel Comics",
+                new Appearance("Male", "Human", null, null, null, null), null,
                 List.of("magic", "sorcery"), null);
     }
 }
