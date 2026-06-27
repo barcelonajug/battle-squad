@@ -14,9 +14,9 @@ The `main` branch contains the phased TODO version of the drafting workflow. The
 
 For the solution branch, configure `MessageChatMemoryAdvisor` first and then layer `TodoWriteTool` on top of that shared memory. The todo checklist only stays useful if the agent has a durable chat-memory channel backing the optimization run.
 
-### Implementation Order
+### Workshop Steps
 
-The workflow is easier to follow if you read it in implementation order:
+This workshop is meant to be followed in this exact order. The README and the implementation now use the same step names and the same overall flow.
 
 1. **Build the tools**
 `HeroSearchTool` and `ArenaManagementTool` wrap the arena API. They stay stateless and focused on API access, including round-aware hero search through `/api/heroes/search/advanced`.
@@ -39,9 +39,9 @@ The solution branch supports the arena v3 round constraints. `RoundSpec` include
 7. **Expose multiple draft options**
 The final response is `DraftOptionsResponse`, which lets the UI present several candidate squads and mark one recommended option.
 
-### Branch Notes
+### How To Read This Branch
 
-On `main`, the same steps appear as attendee-facing TODOs in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, they are implemented end to end.
+On `main`, these steps appear as attendee-facing TODOs in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, the same workflow is implemented end to end.
 
 You can verify the implementation by running:
 
