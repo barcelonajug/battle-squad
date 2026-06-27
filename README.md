@@ -14,15 +14,15 @@ The `main` branch now includes the multi-phase drafting workflow as TODO scaffol
 
 Before wiring `TodoWriteTool`, treat `MessageChatMemoryAdvisor` as a prerequisite in both branches. The todo checklist only remains coherent if the optimization run has a dedicated memory channel scoped by `teamId`, `sessionId`, and `roundNo`.
 
-### Implementation Order
+### Workshop Steps
 
-Build the workshop in this order:
+This workshop is meant to be followed in this exact order. The README and the TODO comments in `BattleAdvisorService` use the same step names.
 
 1. **Build the tools**
 Implement the Arena API wrappers in [`HeroSearchTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java) and [`ArenaManagementTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java). Keep them stateless and focused on API access only.
 
 2. **Configure `BattleAdvisorService`**
-Wire those tools into [`BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return structured output that the UI can render.
+Wire those tools into [`BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return the structured response that the UI can render.
 
 3. **Add chat memory first**
 Before using `TodoWriteTool`, configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`. This is required so the optimization run has one dedicated memory channel.
@@ -38,6 +38,10 @@ After the model drafts a squad, validate it against team size, budget, required 
 
 7. **Expose multiple draft options**
 Return `DraftOptionsResponse` so the UI can show several candidate squads and highlight the recommended one.
+
+### How To Read The Code
+
+On the `main` branch, the TODO comments inside `BattleAdvisorService` are not a second set of phases. They are the same workshop steps above, restated from the point of view of that one service.
 
 ### Starter Branch Notes
 

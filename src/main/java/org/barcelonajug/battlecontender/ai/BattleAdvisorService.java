@@ -24,8 +24,9 @@ public class BattleAdvisorService {
     }
 
     public DraftOptionsResponse buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
-        // TODO Phase 1: Define the strategy list that the orchestrator will evaluate.
-        // Example strategies for the workshop:
+        // Workshop Step 2: Configure BattleAdvisorService.
+        // Define the strategy list that the orchestrator will evaluate.
+        // Example strategies:
         // - balanced-drafter
         // - budget-drafter
         // - synergy-drafter
@@ -36,26 +37,29 @@ public class BattleAdvisorService {
                 "synergy-drafter",
                 "aggressive-drafter");
 
-        // TODO Phase 2: Configure MessageChatMemoryAdvisor before TodoWriteTool.
+        // Workshop Step 3: Add chat memory first.
+        // Configure MessageChatMemoryAdvisor before TodoWriteTool.
         // Scope the memory by teamId + sessionId + roundNo so each optimization run has
         // isolated context.
-        // The todo list should be written into that shared memory channel.
+        // TodoWriteTool will use that same memory-backed run context.
 
-        // TODO Phase 3: Register TodoWriteTool so the agent exposes a visible checklist
-        // while it drafts the squad.
+        // Workshop Step 4: Add TodoWriteTool on top of chat memory.
+        // Register TodoWriteTool so the agent exposes a visible checklist while it
+        // drafts the squad.
 
-        // TODO Phase 4: Keep heroSearchTool and arenaManagementTool stateless and
-        // narrowly scoped to API access.
-        // They should not track progress, memory, or validation state.
+        // Workshop Step 2 also wires the stateless tools into the ChatClient.
+        // heroSearchTool and arenaManagementTool should stay narrowly scoped to API
+        // access and should not track progress, memory, or validation state.
 
-        // TODO Phase 5: Create one prompt per drafting strategy.
+        // Workshop Step 5: Use round-aware hero search.
+        // Create one prompt per drafting strategy.
         // Each strategy should return a SquadRecommendation with reasoning, strategy, and
         // selected heroes.
         // The prompt should require findHeroesForRound before drafting so the agent uses
         // /api/heroes/search/advanced with the round's allowed roles, genders, races,
         // publishers, alignments, and budget.
 
-        // TODO Phase 6: Add deterministic validation after each AI draft.
+        // Workshop Step 6: Validate every draft deterministically.
         // Validate:
         // - exactly the required number of heroes
         // - total cost under the round budget
@@ -63,12 +67,12 @@ public class BattleAdvisorService {
         // - banned tags and round-specific constraints obeyed
         // - allowed roles, genders, races, publishers, and alignments obeyed
 
-        // TODO Phase 7: Wrap every result into DraftOption and return
-        // DraftOptionsResponse.
+        // Workshop Step 7: Expose multiple draft options.
+        // Wrap every result into DraftOption and return DraftOptionsResponse.
         // Mark one valid option as recommended so the UI can render a strategy picker.
 
-        // TODO Phase 8: Once this workflow is complete, the controller and UI are
-        // already ready to display multiple options.
+        // The controller and UI are already prepared to display multiple options once
+        // this workflow is implemented.
 
         throw new UnsupportedOperationException(
                 "TODO: Implement the phased drafting workflow with chat memory, TodoWriteTool, and draft options");
