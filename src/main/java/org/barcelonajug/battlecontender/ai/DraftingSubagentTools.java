@@ -2,7 +2,7 @@ package org.barcelonajug.battlecontender.ai;
 
 import org.barcelonajug.battlecontender.ai.tools.ArenaManagementTool;
 import org.barcelonajug.battlecontender.ai.tools.HeroSearchTool;
-import org.springaicommunity.agent.tools.TodoWriteTool;
+import org.barcelonajug.battlecontender.ai.tools.SquadValidationTool;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 
@@ -15,7 +15,7 @@ final class DraftingSubagentTools {
             "findHeroesForRound",
             "getHeroDetails",
             "getRoundConstraints",
-            "TodoWrite");
+            "validateSquadForRound");
 
     private DraftingSubagentTools() {
     }
@@ -23,9 +23,9 @@ final class DraftingSubagentTools {
     static List<ToolCallback> callbacks(
             HeroSearchTool heroSearchTool,
             ArenaManagementTool arenaManagementTool,
-            TodoWriteTool todoWriteTool) {
+            SquadValidationTool squadValidationTool) {
         ToolCallback[] callbacks = MethodToolCallbackProvider.builder()
-                .toolObjects(heroSearchTool, arenaManagementTool, todoWriteTool)
+                .toolObjects(heroSearchTool, arenaManagementTool, squadValidationTool)
                 .build()
                 .getToolCallbacks();
 

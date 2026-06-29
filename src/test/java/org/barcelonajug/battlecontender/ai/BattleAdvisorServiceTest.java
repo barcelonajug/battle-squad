@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.times;
@@ -112,15 +111,26 @@ class BattleAdvisorServiceTest {
     }
 
     @Test
-    void buildOptimalSquad_failsWhenNoSubagentProducesAValidDraft() {
+    void buildOptimalSquad_returnsInvalidOptionsWhenNoSubagentProducesAValidDraft() {
         when(draftingSubagentOrchestrator.draft(any(), any(), anyInt()))
                 .thenReturn(DraftingStrategies.ALL.stream()
-                        .map(strategy -> new SubagentDraft(strategy.id(), null, "Draft failed."))
+                        .map(strategy -> new SubagentDraft(strategy.id(), recommendation(), null))
                         .toList());
+        when(squadValidationService.validateSquad(any(), anyInt(), any(SquadRecommendation.class)))
+                .thenReturn(new SquadValidationService.ValidationResult(
+                        false,
+                        15,
+                        List.of("Expected exactly 5 heroes but got 1.")));
 
-        assertThatThrownBy(() -> service().buildOptimalSquad(UUID.randomUUID(), 2, UUID.randomUUID()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("No drafting strategy produced a valid squad for this round.");
+        DraftOptionsResponse actual = service().buildOptimalSquad(UUID.randomUUID(), 2, UUID.randomUUID());
+
+        assertThat(actual.options()).hasSize(4).allMatch(option -> !option.valid());
+        assertThat(actual.options()).allSatisfy(option -> {
+            assertThat(option.recommendation().heroes()).hasSize(1);
+            assertThat(option.violations()).containsExactly("Expected exactly 5 heroes but got 1.");
+        });
+        assertThat(actual.recommendedStrategyId()).isNull();
+        assertThat(actual.options()).noneMatch(DraftOption::recommended);
     }
 
     private BattleAdvisorService service() {

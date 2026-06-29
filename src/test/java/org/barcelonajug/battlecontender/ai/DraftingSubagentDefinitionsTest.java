@@ -18,7 +18,7 @@ class DraftingSubagentDefinitionsTest {
             "findHeroesForRound",
             "getHeroDetails",
             "getRoundConstraints",
-            "TodoWrite");
+            "validateSquadForRound");
 
     @Test
     void markdownDefinitions_registerFourMiniModelDraftersWithRestrictedTools() throws IOException {
@@ -40,6 +40,7 @@ class DraftingSubagentDefinitionsTest {
             assertThat(definition.getModel()).isEqualTo("mini");
             assertThat(definition.tools()).containsExactlyInAnyOrderElementsOf(EXPECTED_TOOLS);
             assertThat(definition.getDescription()).isNotBlank();
+            assertThat(definition.getContent()).contains("at most 2 validation attempts");
         });
     }
 }

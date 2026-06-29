@@ -2,6 +2,7 @@ package org.barcelonajug.battlecontender.ai;
 
 import org.barcelonajug.battlecontender.ai.tools.ArenaManagementTool;
 import org.barcelonajug.battlecontender.ai.tools.HeroSearchTool;
+import org.barcelonajug.battlecontender.ai.tools.SquadValidationTool;
 import org.springaicommunity.agent.tools.TodoWriteTool;
 import org.springaicommunity.agent.tools.task.TaskOutputTool;
 import org.springaicommunity.agent.tools.task.TaskTool;
@@ -45,6 +46,7 @@ public class DraftingSubagentConfiguration {
             ChatClient.Builder chatClientBuilder,
             HeroSearchTool heroSearchTool,
             ArenaManagementTool arenaManagementTool,
+            SquadValidationTool squadValidationTool,
             @Value("${battle.ai.subagent-model:gpt-5-mini}") String subagentModel) {
         TodoWriteTool todoWriteTool = TodoWriteTool.builder().build();
         ChatClient.Builder miniModelBuilder = chatClientBuilder.clone()
@@ -53,7 +55,7 @@ public class DraftingSubagentConfiguration {
         var subagentTools = DraftingSubagentTools.callbacks(
                 heroSearchTool,
                 arenaManagementTool,
-                todoWriteTool);
+                squadValidationTool);
         var subagentExecutor = new ClaudeSubagentExecutor(
                 Map.of("default", miniModelBuilder, "mini", miniModelBuilder),
                 subagentTools);

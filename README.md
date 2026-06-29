@@ -45,7 +45,7 @@ The final response is `DraftOptionsResponse`, which lets the UI present several 
 The `agents` resource directory contains balanced, budget, synergy, and aggressive drafter definitions. Each file owns one strategy prompt and declares `model: mini`.
 
 9. **Configure restricted subagents**
-`DraftingSubagentConfiguration` initializes the subagents from `ChatClient.Builder`. Their executor receives only `findHeroesForRound`, `getHeroDetails`, `getRoundConstraints`, and `TodoWrite`; it does not receive filesystem, shell, web, or nested Task tools.
+`DraftingSubagentConfiguration` initializes the subagents from `ChatClient.Builder`. Their executor receives only `findHeroesForRound`, `getHeroDetails`, `getRoundConstraints`, and `validateSquadForRound`; it does not receive filesystem, shell, web, TodoWrite, or nested Task tools.
 
 10. **Orchestrate parallel drafts**
 The parent agent uses Spring AI `TaskTool` to launch all four drafters as background tasks in one turn and `TaskOutputTool` to collect them. The parent keeps `MessageChatMemoryAdvisor` and the visible TodoWrite checklist, while every subagent gets an isolated context window. See the [Spring AI Task Subagents pattern](https://spring.io/blog/2026/01/27/spring-ai-agentic-patterns-4-task-subagents/).
@@ -62,7 +62,9 @@ Browser
   -> DraftOptionsResponse returns four UI options
 ```
 
-The LLM proposes squads, but it does not decide whether they are legal. `SquadValidationService` remains the authoritative check for team size, budget, roles, banned tags, and allowed round attributes. Missing, duplicate, or malformed subagent results remain visible as invalid options and are not retried.
+The LLM proposes squads, but it does not decide whether they are legal. Each drafter calls the stateless `validateSquadForRound` tool and gets at most one correction attempt. `SquadValidationService` remains the authoritative check for team size, budget, roles, banned tags, and allowed round attributes both inside that feedback loop and after orchestration.
+
+TodoWrite remains on the parent agent so the UI can show orchestration progress without spending four subagent contexts on duplicate checklists. Missing, duplicate, malformed, or still-invalid results remain visible as invalid options. If every strategy fails validation, the response still contains all four options and their violations, with no recommended strategy.
 
 ### Agent Definitions
 

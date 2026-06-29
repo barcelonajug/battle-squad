@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class BattleAdvisorService {
     public DraftOptionsResponse buildOptimalSquad(UUID teamId, int roundNo, UUID sessionId) {
         List<SubagentDraft> drafts = draftingSubagentOrchestrator.draft(teamId, sessionId, roundNo);
         List<DraftOption> options = buildValidatedDraftOptions(sessionId, roundNo, drafts);
-        DraftOption recommendedOption = chooseRecommendedOption(options);
+        Optional<DraftOption> recommendedOption = chooseRecommendedOption(options);
         return buildDraftOptionsResponse(options, recommendedOption);
     }
 
@@ -96,24 +97,26 @@ public class BattleAdvisorService {
         return value != null && !value.isBlank();
     }
 
-    private DraftOption chooseRecommendedOption(List<DraftOption> options) {
+    private Optional<DraftOption> chooseRecommendedOption(List<DraftOption> options) {
         return options.stream()
                 .filter(DraftOption::valid)
-                .min(Comparator.comparingInt(option -> option.recommendation().totalCost()))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No drafting strategy produced a valid squad for this round."));
+                .min(Comparator.comparingInt(option -> option.recommendation().totalCost()));
     }
 
     private DraftOptionsResponse buildDraftOptionsResponse(List<DraftOption> options,
-            DraftOption recommendedOption) {
+            Optional<DraftOption> recommendedOption) {
         List<DraftOption> finalizedOptions = options.stream()
-                .map(option -> option.strategyId().equals(recommendedOption.strategyId())
-                        ? new DraftOption(option.strategyId(), option.label(), option.summary(), option.recommendation(),
-                                true, option.valid(), option.violations())
-                        : option)
+                .map(option -> recommendedOption
+                        .filter(recommended -> option.strategyId().equals(recommended.strategyId()))
+                        .map(recommended -> new DraftOption(
+                                option.strategyId(), option.label(), option.summary(), option.recommendation(),
+                                true, option.valid(), option.violations()))
+                        .orElse(option))
                 .toList();
 
-        return new DraftOptionsResponse(finalizedOptions, recommendedOption.strategyId());
+        return new DraftOptionsResponse(
+                finalizedOptions,
+                recommendedOption.map(DraftOption::strategyId).orElse(null));
     }
 
 }
