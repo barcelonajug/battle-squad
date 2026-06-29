@@ -6,6 +6,10 @@ arena:
   api:
     base-url: https://superhero-battle-arena.barcelonajug.org
 
+battle:
+  ai:
+    subagent-model: ${BATTLE_SUBAGENT_MODEL:gpt-5-mini}
+
 ---
 spring:
   config:
@@ -16,8 +20,7 @@ spring:
       api-key: ${OPENAI_API_KEY:your-openai-key-here}
       chat:
         options:
-          model: gpt-4o-mini
-
+          model: gpt-5.4-mini
 ---
 spring:
   config:
@@ -32,7 +35,6 @@ spring:
           chat:
             options:
               model: gemini-2.0-flash-exp
-
 ---
 spring:
   config:
@@ -44,7 +46,6 @@ spring:
       chat:
         options:
           model: llama3.2
-
 ---
 spring:
   config:
@@ -56,7 +57,6 @@ spring:
       chat:
         options:
           model: claude-3-5-haiku-20241022
-
 ---
 spring:
   config:

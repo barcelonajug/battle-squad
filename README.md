@@ -10,19 +10,21 @@ This repository contains the `main` branch, which serves as the starter project.
 
 Your goal is to implement the **Spring AI** layer.
 
-The `main` branch contains the phased TODO version of the drafting workflow. The `solution` branch contains the full working implementation of the same phases.
+The branches show three stages of the same workshop:
 
-For the solution branch, configure `MessageChatMemoryAdvisor` first and then layer `TodoWriteTool` on top of that shared memory. The todo checklist only stays useful if the agent has a durable chat-memory channel backing the optimization run.
+- `main` contains the attendee-facing TODO implementation.
+- `solution` contains the complete single-agent, multi-strategy workflow.
+- `solution-subagents` moves each drafting strategy into an isolated Spring AI subagent.
 
 ### Workshop Steps
 
-This workshop is meant to be followed in this exact order. The README and the implementation now use the same step names and the same overall flow.
+The first seven steps are shared with the other branches. Steps 8-10 show the subagent extension.
 
 1. **Build the tools**
 `HeroSearchTool` and `ArenaManagementTool` wrap the arena API. They stay stateless and focused on API access, including round-aware hero search through `/api/heroes/search/advanced`.
 
 2. **Configure `BattleAdvisorService`**
-`BattleAdvisorService` wires the tools into Spring AI, defines the drafting strategies, and returns the structured response that the UI renders.
+`BattleAdvisorService` coordinates drafting, validates every returned squad, and returns the structured response rendered by the UI.
 
 3. **Add chat memory first**
 `MessageChatMemoryAdvisor` is configured before `TodoWriteTool` and scoped by `teamId`, `sessionId`, and `roundNo`, so each optimization run has one durable memory channel.
@@ -39,9 +41,43 @@ The solution branch supports the arena v3 round constraints. `RoundSpec` include
 7. **Expose multiple draft options**
 The final response is `DraftOptionsResponse`, which lets the UI present several candidate squads and mark one recommended option.
 
-### How To Read This Branch
+8. **Describe specialized drafters in Markdown**
+The `agents` resource directory contains balanced, budget, synergy, and aggressive drafter definitions. Each file owns one strategy prompt and declares `model: mini`.
 
-On `main`, these steps appear as attendee-facing TODOs in [`src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java). On `solution`, the same workflow is implemented end to end.
+9. **Configure restricted subagents**
+`DraftingSubagentConfiguration` initializes the subagents from `ChatClient.Builder`. Their executor receives only `findHeroesForRound`, `getHeroDetails`, `getRoundConstraints`, and `TodoWrite`; it does not receive filesystem, shell, web, or nested Task tools.
+
+10. **Orchestrate parallel drafts**
+The parent agent uses Spring AI `TaskTool` to launch all four drafters as background tasks in one turn and `TaskOutputTool` to collect them. The parent keeps `MessageChatMemoryAdvisor` and the visible TodoWrite checklist, while every subagent gets an isolated context window. See the [Spring AI Task Subagents pattern](https://spring.io/blog/2026/01/27/spring-ai-agentic-patterns-4-task-subagents/).
+
+### Subagent Workflow
+
+```text
+Browser
+  -> BattleAdvisorService
+  -> parent ChatClient (memory + TodoWrite)
+  -> TaskTool launches four isolated drafting subagents
+  -> TaskOutputTool collects four recommendations
+  -> SquadValidationService validates each recommendation
+  -> DraftOptionsResponse returns four UI options
+```
+
+The LLM proposes squads, but it does not decide whether they are legal. `SquadValidationService` remains the authoritative check for team size, budget, roles, banned tags, and allowed round attributes. Missing, duplicate, or malformed subagent results remain visible as invalid options and are not retried.
+
+### Agent Definitions
+
+The Markdown definitions live in `src/main/resources/agents`:
+
+- `balanced-drafter.md`
+- `budget-drafter.md`
+- `synergy-drafter.md`
+- `aggressive-drafter.md`
+
+The parent model is configured by the active Spring AI provider profile. Subagents default to `gpt-5-mini`; override that model for another provider or workshop environment with:
+
+```bash
+export BATTLE_SUBAGENT_MODEL=your-provider-model
+```
 
 You can verify the implementation by running:
 
