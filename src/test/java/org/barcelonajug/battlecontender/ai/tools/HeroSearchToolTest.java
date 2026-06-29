@@ -140,6 +140,43 @@ class HeroSearchToolTest {
         verify(arenaApiClient).advancedSearchHeroes(criteria);
     }
 
+    @Test
+    void findHeroesForRound_supportsUnrestrictedOptionalAttributes() {
+        UUID sessionId = UUID.randomUUID();
+        RoundSpec roundSpec = new RoundSpec(
+                "Female fighters and supports",
+                5,
+                10_000,
+                Map.of(),
+                Map.of(),
+                List.of(),
+                Map.of(),
+                "ARENA_1",
+                List.of("Fighter", "Support"),
+                List.of("Female"),
+                List.of(),
+                List.of(),
+                List.of());
+        var criteria = new AdvancedHeroSearchCriteria(
+                null, null, null, "Fighter", "Female", null,
+                null, 10_000,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                null, null,
+                0, 20, "power", "ASC");
+        when(arenaApiClient.getRound(1, sessionId)).thenReturn(roundSpec);
+        when(arenaApiClient.advancedSearchHeroes(criteria)).thenReturn(List.of(hero(201, "Captain Marvel")));
+
+        var summaries = heroSearchTool.findHeroesForRound(
+                sessionId.toString(), 1, null, "Fighter", null, "power");
+
+        assertThat(summaries).extracting(HeroSearchTool.HeroSummary::name).containsExactly("Captain Marvel");
+        verify(arenaApiClient).advancedSearchHeroes(criteria);
+    }
+
     private static Hero hero(int id, String name) {
         return new Hero(id, name, name.toLowerCase(), null, "Support", 10, "good", "Marvel Comics",
                 new Appearance("Male", "Human", null, null, null, null), null,
