@@ -1,7 +1,6 @@
 package org.barcelonajug.battlecontender;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -15,9 +14,6 @@ class BattleContenderApplicationTest {
     // during the build
     @MockitoBean
     private ChatModel chatModel;
-
-    @MockitoBean
-    private ChatClient.Builder chatClientBuilder;
 
     @Test
     void contextLoads() {
