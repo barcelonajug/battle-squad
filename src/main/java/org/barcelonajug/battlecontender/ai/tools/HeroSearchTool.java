@@ -9,6 +9,7 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,7 +157,7 @@ public class HeroSearchTool {
             return List.of(requestedValue);
         }
         if (allowedValues == null || allowedValues.isEmpty()) {
-            return List.of((String) null);
+            return Collections.singletonList(null);
         }
         return new ArrayList<>(allowedValues);
     }
