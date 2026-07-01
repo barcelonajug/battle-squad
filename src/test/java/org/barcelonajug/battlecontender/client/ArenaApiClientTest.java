@@ -86,16 +86,16 @@ class ArenaApiClientTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
 
-    var heroes = arenaApiClient.advancedSearchHeroes(new AdvancedHeroSearchCriteria(
-        "man", null, "DC Comics", "Tank", null, null,
-        null, 20,
-        null, null,
-        null, null,
-        null, null,
-        null, null,
-        null, null,
-        null, null,
-        0, 20, "cost", "ASC"));
+    var heroes = arenaApiClient.advancedSearchHeroes(AdvancedHeroSearchCriteria.builder()
+        .name("man")
+        .publisher("DC Comics")
+        .role("Tank")
+        .maxCost(20)
+        .page(0)
+        .size(20)
+        .sortBy("cost")
+        .sortDirection("ASC")
+        .build());
 
     assertThat(heroes).extracting(Hero::name).containsExactly("Superman", "Wonder Woman");
   }

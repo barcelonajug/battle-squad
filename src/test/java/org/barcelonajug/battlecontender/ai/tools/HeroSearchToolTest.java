@@ -85,16 +85,19 @@ class HeroSearchToolTest {
 
     @Test
     void advancedSearchHeroes_mapsFilteredResults() {
-        var criteria = new AdvancedHeroSearchCriteria(
-                "spider", "good", "Marvel Comics", "Fighter", "Male", "Human",
-                null, 25,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                0, 20, "cost", "ASC");
+        var criteria = AdvancedHeroSearchCriteria.builder()
+                .name("spider")
+                .alignment("good")
+                .publisher("Marvel Comics")
+                .role("Fighter")
+                .gender("Male")
+                .race("Human")
+                .maxCost(25)
+                .page(0)
+                .size(20)
+                .sortBy("cost")
+                .sortDirection("ASC")
+                .build();
         when(arenaApiClient.advancedSearchHeroes(criteria)).thenReturn(List.of(hero(101, "Spider-Man")));
 
         var summaries = heroSearchTool.advancedSearchHeroes(
@@ -121,16 +124,18 @@ class HeroSearchToolTest {
                 List.of("Human"),
                 List.of("Marvel Comics"),
                 List.of("good"));
-        var criteria = new AdvancedHeroSearchCriteria(
-                null, "good", "Marvel Comics", "Fighter", "Male", "Human",
-                null, 50,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                0, 20, "cost", "ASC");
+        var criteria = AdvancedHeroSearchCriteria.builder()
+                .alignment("good")
+                .publisher("Marvel Comics")
+                .role("Fighter")
+                .gender("Male")
+                .race("Human")
+                .maxCost(50)
+                .page(0)
+                .size(20)
+                .sortBy("cost")
+                .sortDirection("ASC")
+                .build();
         when(arenaApiClient.getRound(3, sessionId)).thenReturn(roundSpec);
         when(arenaApiClient.advancedSearchHeroes(criteria)).thenReturn(List.of(hero(101, "Spider-Man")));
 

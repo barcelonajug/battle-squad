@@ -9,15 +9,27 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 public class HeroSearchTool {
 
     private final ArenaApiClient arenaApiClient;
+
+    private record RoundSearchCriteria(
+            String name,
+            String alignment,
+            String publisher,
+            String role,
+            String gender,
+            String race,
+            Integer maxCost,
+            String sortBy) {
+    }
 
     public record HeroSummary(
             int id,
@@ -64,19 +76,7 @@ public class HeroSearchTool {
             @ToolParam(description = "Optional maximum cost") Integer maxCost,
             @ToolParam(description = "Optional sort field: name, cost, power, or speed") String sortBy,
             @ToolParam(description = "Optional sort direction: ASC or DESC") String sortDirection) {
-        return arenaApiClient.advancedSearchHeroes(new AdvancedHeroSearchCriteria(
-                name, alignment, publisher, role, gender, race,
-                null, maxCost,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                null, null,
-                0, 20, sortBy, sortDirection)).stream()
-                .limit(20)
-                .map(this::toSummary)
-                .toList();
+        return searchAndSummarize(buildCriteria(name, alignment, publisher, role, gender, race, maxCost, sortBy, sortDirection));
     }
 
     @Tool(description = "Find heroes that fit the active round constraints. Use this before drafting a squad for a round.")
@@ -96,37 +96,7 @@ public class HeroSearchTool {
         List<String> genders = constrainedValues(roundSpec.allowedGenders(), null);
         List<String> races = constrainedValues(roundSpec.allowedRaces(), null);
 
-        Map<Integer, Hero> uniqueHeroes = new LinkedHashMap<>();
-        for (String roleValue : roles) {
-            for (String alignmentValue : alignments) {
-                for (String publisherValue : publishers) {
-                    for (String genderValue : genders) {
-                        for (String raceValue : races) {
-                            List<Hero> heroes = arenaApiClient.advancedSearchHeroes(new AdvancedHeroSearchCriteria(
-                                    name, alignmentValue, publisherValue, roleValue, genderValue, raceValue,
-                                    null, effectiveMaxCost,
-                                    null, null,
-                                    null, null,
-                                    null, null,
-                                    null, null,
-                                    null, null,
-                                    null, null,
-                                    0, 20, sortBy, "ASC"));
-                            for (Hero hero : heroes) {
-                                uniqueHeroes.putIfAbsent(hero.id(), hero);
-                                if (uniqueHeroes.size() >= 40) {
-                                    return uniqueHeroes.values().stream().map(this::toSummary).toList();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return uniqueHeroes.values().stream()
-                .map(this::toSummary)
-                .toList();
+        return searchRoundHeroes(name, effectiveMaxCost, sortBy, roles, alignments, publishers, genders, races);
     }
 
     @Tool(description = "Get detailed information about a specific hero by their ID.")
@@ -135,9 +105,7 @@ public class HeroSearchTool {
     }
 
     private HeroSummary toSummary(Hero hero) {
-        List<String> tags = hero.tags() == null ? List.of() : hero.tags().stream()
-                .map(String::valueOf)
-                .toList();
+        List<String> tags = hero.tags() == null ? List.of() : hero.tags().stream().map(String::valueOf).toList();
 
         return new HeroSummary(
                 hero.id(),
@@ -151,6 +119,86 @@ public class HeroSearchTool {
                 tags);
     }
 
+    private AdvancedHeroSearchCriteria buildCriteria(
+            String name,
+            String alignment,
+            String publisher,
+            String role,
+            String gender,
+            String race,
+            Integer maxCost,
+            String sortBy,
+            String sortDirection) {
+        return AdvancedHeroSearchCriteria.builder()
+                .name(name)
+                .alignment(alignment)
+                .publisher(publisher)
+                .role(role)
+                .gender(gender)
+                .race(race)
+                .maxCost(maxCost)
+                .page(0)
+                .size(20)
+                .sortBy(sortBy)
+                .sortDirection(sortDirection)
+                .build();
+    }
+
+    private List<HeroSummary> searchAndSummarize(AdvancedHeroSearchCriteria criteria) {
+        return arenaApiClient.advancedSearchHeroes(criteria).stream()
+                .limit(20)
+                .map(this::toSummary)
+                .toList();
+    }
+
+    private Stream<RoundSearchCriteria> combinations(
+            String name,
+            Integer maxCost,
+            String sortBy,
+            List<String> roles,
+            List<String> alignments,
+            List<String> publishers,
+            List<String> genders,
+            List<String> races) {
+        return roles.stream()
+                .flatMap(role -> alignments.stream()
+                        .flatMap(alignment -> publishers.stream()
+                                .flatMap(publisher -> genders.stream()
+                                        .flatMap(gender -> races.stream()
+                                                .map(race -> new RoundSearchCriteria(name, alignment, publisher, role, gender, race, maxCost, sortBy))))));
+    }
+
+    private List<Hero> searchHeroes(
+            RoundSearchCriteria criteria) {
+        return arenaApiClient.advancedSearchHeroes(buildCriteria(
+                criteria.name(),
+                criteria.alignment(),
+                criteria.publisher(),
+                criteria.role(),
+                criteria.gender(),
+                criteria.race(),
+                criteria.maxCost(),
+                criteria.sortBy(),
+                "ASC"));
+    }
+
+    private List<HeroSummary> searchRoundHeroes(
+            String name,
+            Integer maxCost,
+            String sortBy,
+            List<String> roles,
+            List<String> alignments,
+            List<String> publishers,
+            List<String> genders,
+            List<String> races) {
+        return combinations(name, maxCost, sortBy, roles, alignments, publishers, genders, races)
+                .flatMap(criteria -> searchHeroes(criteria).stream())
+                .filter(distinctByKey(Hero::id))
+                .limit(40)
+                .map(this::toSummary)
+                .toList();
+    }
+
     private List<String> constrainedValues(List<String> allowedValues, String requestedValue) {
         if (requestedValue != null && !requestedValue.isBlank()) {
             return List.of(requestedValue);
@@ -159,5 +207,10 @@ public class HeroSearchTool {
             return List.of((String) null);
         }
         return new ArrayList<>(allowedValues);
+    }
+
+    private static <T> java.util.function.Predicate<T> distinctByKey(java.util.function.Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = new HashSet<>();
+        return value -> seen.add(keyExtractor.apply(value));
     }
 }
