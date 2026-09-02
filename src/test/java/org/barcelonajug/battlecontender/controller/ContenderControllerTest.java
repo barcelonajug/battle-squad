@@ -9,11 +9,15 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.http.MediaType;
+
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,5 +44,26 @@ class ContenderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sessionId").value(sessionId.toString()))
                 .andExpect(jsonPath("$.active").value(true));
+    }
+
+    @Test
+    void registerTeam_returnsTeamId() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        UUID teamId = UUID.randomUUID();
+
+        when(arenaApiClient.registerTeam("Squad A", List.of("Alice", "Bob"), sessionId))
+                .thenReturn(teamId);
+
+        mockMvc.perform(post("/api/contender/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "name": "Squad A",
+                                    "members": ["Alice", "Bob"],
+                                    "sessionId": "%s"
+                                }
+                                """.formatted(sessionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.teamId").value(teamId.toString()));
     }
 }

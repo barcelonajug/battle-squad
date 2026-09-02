@@ -1,307 +1,419 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Battle Contender - AI Workshop</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        border: "hsl(var(--border))",
-                        input: "hsl(var(--input))",
-                        ring: "hsl(var(--ring))",
-                        background: "hsl(var(--background))",
-                        foreground: "hsl(var(--foreground))",
-                        primary: {
-                            DEFAULT: "hsl(var(--primary))",
-                            foreground: "hsl(var(--primary-foreground))",
-                        },
-                        secondary: {
-                            DEFAULT: "hsl(var(--secondary))",
-                            foreground: "hsl(var(--secondary-foreground))",
-                        },
-                        destructive: {
-                            DEFAULT: "hsl(var(--destructive))",
-                            foreground: "hsl(var(--destructive-foreground))",
-                        },
-                        muted: {
-                            DEFAULT: "hsl(var(--muted))",
-                            foreground: "hsl(var(--muted-foreground))",
-                        },
-                        accent: {
-                            DEFAULT: "hsl(var(--accent))",
-                            foreground: "hsl(var(--accent-foreground))",
-                        },
-                        card: {
-                            DEFAULT: "hsl(var(--card))",
-                            foreground: "hsl(var(--card-foreground))",
-                        },
-                    },
-                    borderRadius: {
-                        lg: "var(--radius)",
-                        md: "calc(var(--radius) - 2px)",
-                        sm: "calc(var(--radius) - 4px)",
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+          },
+        },
+      };
     </script>
-    <link rel="stylesheet" href="css/styles.css">
-</head>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
 
-<body class="min-h-screen font-sans antialiased p-8">
-
+  <body class="min-h-screen font-sans antialiased p-8">
     <div class="max-w-6xl mx-auto space-y-8">
-
-        <!-- Header -->
-        <header class="flex justify-between items-center pb-6 border-b border-border">
-            <div class="flex items-center gap-4">
-                <img src="barcelonajug.png" alt="Barcelona JUG Logo" class="h-12 w-auto">
-                <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Battle Contender</h1>
-                    <p class="text-muted-foreground mt-1">Spring AI + Java 25 Workshop Template</p>
-                </div>
-            </div>
-            <div id="session-badge"
-                class="hidden inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary shadow-sm">
-                Session Active
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-            <!-- Left Column: Registration & Squad -->
-            <div class="space-y-6">
-
-                <!-- Registration Card -->
-                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                    <div class="flex flex-col space-y-1.5 p-6">
-                        <h3 class="text-2xl font-semibold leading-none tracking-tight">1. Register Team</h3>
-                        <p class="text-sm text-muted-foreground">Register your workshop group to get a Team ID.</p>
-                    </div>
-                    <div class="p-6 pt-0">
-                        <form id="register-form" class="space-y-4">
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium leading-none">Team Name</label>
-                                <input type="text" id="reg-team-name" required
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium leading-none">Members (comma separated)</label>
-                                <input type="text" id="reg-members" placeholder="Alice, Bob" required
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                            </div>
-                            <button type="submit"
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
-                                Register
-                            </button>
-                        </form>
-
-                        <div id="team-id-display"
-                            class="hidden mt-4 p-3 bg-secondary rounded-md text-sm break-all font-mono">
-                            <!-- Team ID injected here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Active Round Card -->
-                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                    <div class="flex flex-col space-y-1.5 p-6">
-                        <h3 class="text-2xl font-semibold leading-none tracking-tight">2. Active Round</h3>
-                        <div class="flex items-center gap-2">
-                            <select id="round-select"
-                                class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                <option value="">Select a round...</option>
-                            </select>
-                            <button id="btn-refresh-rounds" title="Refresh rounds"
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-3">
-                                🔄
-                            </button>
-                            <button id="btn-load-round"
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 hidden">Load</button>
-                        </div>
-                    </div>
-                    <div class="p-6 pt-0 text-sm space-y-4" id="round-constraints-container">
-                        <p class="text-muted-foreground">Select a round to view constraints.</p>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Middle/Right Column: Hero Browser & AI Magic -->
-            <div class="md:col-span-2 space-y-6">
-
-                <!-- Hero Browser -->
-                <div
-                    class="rounded-lg border border-border bg-card text-card-foreground shadow-sm h-full flex flex-col">
-                    <div class="flex flex-col space-y-1.5 p-6 pb-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-2xl font-semibold leading-none tracking-tight">3. Build & Optimize</h3>
-                                <p class="text-sm text-muted-foreground mt-1">Browse heroes or let the AI build the
-                                    optimal squad.</p>
-                            </div>
-                            <!-- AI Optimize Button -->
-                            <button id="btn-ai-optimize" disabled
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed group">
-                                <span class="mr-2">✨</span>
-                                <span class="btn-text">Optimize with AI</span>
-                                <span class="loader w-4 h-4 ml-2 hidden"></span>
-                            </button>
-                        </div>
-
-                        <!-- Search Filters -->
-                        <div class="flex gap-2 pt-4">
-                            <input type="text" id="hero-search" placeholder="Search hero..."
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                            <select id="hero-alignment"
-                                class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                <option value="">Any align</option>
-                                <option value="good">Good</option>
-                                <option value="bad">Bad</option>
-                                <option value="neutral">Neutral</option>
-                            </select>
-                            <button id="btn-search"
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">Search</button>
-                        </div>
-                    </div>
-
-                    <!-- Hero List -->
-                    <div class="p-6 pt-0 flex-1 overflow-y-auto min-h-[400px]">
-                        <div id="hero-list" class="divide-y divide-border">
-                            <!-- Hero items injected here -->
-                            <div class="text-center py-12 text-muted-foreground">
-                                Use the search controls above to browse available heroes.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="p-4 border-t border-border flex items-center justify-between bg-muted/50">
-                        <span id="page-info" class="text-sm text-muted-foreground">Page 1</span>
-                        <div class="flex gap-2">
-                            <button id="btn-prev-page" disabled
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent h-8 px-3 disabled:opacity-50">Previous</button>
-                            <button id="btn-next-page"
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent h-8 px-3">Next</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Squad Selection Panel [NEW] -->
-                <div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm flex flex-col">
-                    <div class="p-6 flex flex-col space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xl font-semibold">Your Squad</h3>
-                            <span id="squad-count"
-                                class="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm font-bold">0 / 0</span>
-                        </div>
-
-                        <div id="selected-heroes" class="space-y-2 min-h-[100px] max-h-[300px] overflow-y-auto">
-                            <p class="text-sm text-muted-foreground italic">No heroes selected yet.</p>
-                        </div>
-
-                        <div class="pt-4 border-t border-border flex items-center justify-between">
-                            <span class="text-sm font-medium">Total Cost:</span>
-                            <span id="total-squad-cost" class="font-mono text-lg font-bold">0 💰</span>
-                        </div>
-
-                        <button id="btn-submit-manual-squad"
-                            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 w-full font-bold shadow-lg shadow-primary/20">
-                            Submit Squad to Arena
-                        </button>
-                    </div>
-                </div>
-
-            </div>
+      <!-- Header -->
+      <header
+        class="flex justify-between items-center pb-6 border-b border-border"
+      >
+        <div class="flex items-center gap-4">
+          <img
+            src="barcelonajug.png"
+            alt="Barcelona JUG Logo"
+            class="h-12 w-auto"
+          />
+          <div>
+            <h1 class="text-3xl font-bold tracking-tight">Battle Contender</h1>
+            <p class="text-muted-foreground mt-1">
+              Spring AI + Java 25 Workshop Template
+            </p>
+          </div>
         </div>
+        <div
+          id="session-badge"
+          class="hidden inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary shadow-sm"
+        >
+          Session Active
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Left Column: Registration & Squad -->
+        <div class="space-y-6">
+          <!-- Registration Card -->
+          <div
+            class="rounded-lg border border-border bg-card text-card-foreground shadow-sm"
+          >
+            <div class="flex flex-col space-y-1.5 p-6">
+              <h3 class="text-2xl font-semibold leading-none tracking-tight">
+                1. Register Team
+              </h3>
+              <p class="text-sm text-muted-foreground">
+                Register your workshop group to get a Team ID.
+              </p>
+            </div>
+            <div class="p-6 pt-0">
+              <form id="register-form" class="space-y-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium leading-none"
+                    >Team Name</label
+                  >
+                  <input
+                    type="text"
+                    id="reg-team-name"
+                    required
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium leading-none"
+                    >Members (comma separated)</label
+                  >
+                  <input
+                    type="text"
+                    id="reg-members"
+                    placeholder="Alice, Bob"
+                    required
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+                >
+                  Register
+                </button>
+              </form>
+
+              <div
+                id="team-id-display"
+                class="hidden mt-4 p-3 bg-secondary rounded-md text-sm break-all font-mono"
+              >
+                <!-- Team ID injected here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Round Card -->
+          <div
+            class="rounded-lg border border-border bg-card text-card-foreground shadow-sm"
+          >
+            <div class="flex flex-col space-y-1.5 p-6">
+              <h3 class="text-2xl font-semibold leading-none tracking-tight">
+                2. Active Round
+              </h3>
+              <div class="flex items-center gap-2">
+                <select
+                  id="round-select"
+                  class="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Select a round...</option>
+                </select>
+                <button
+                  id="btn-refresh-rounds"
+                  title="Refresh rounds"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-3"
+                >
+                  🔄
+                </button>
+                <button
+                  id="btn-load-round"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 hidden"
+                >
+                  Load
+                </button>
+              </div>
+            </div>
+            <div
+              class="p-6 pt-0 text-sm space-y-4"
+              id="round-constraints-container"
+            >
+              <p class="text-muted-foreground">
+                Select a round to view constraints.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle/Right Column: Hero Browser & AI Magic -->
+        <div class="md:col-span-2 space-y-6">
+          <!-- Hero Browser -->
+          <div
+            class="rounded-lg border border-border bg-card text-card-foreground shadow-sm h-full flex flex-col"
+          >
+            <div class="flex flex-col space-y-1.5 p-6 pb-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3
+                    class="text-2xl font-semibold leading-none tracking-tight"
+                  >
+                    3. Build & Optimize
+                  </h3>
+                  <p class="text-sm text-muted-foreground mt-1">
+                    Browse heroes or let the AI build the optimal squad.
+                  </p>
+                </div>
+                <!-- AI Optimize Button -->
+                <button
+                  id="btn-ai-optimize"
+                  disabled
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  <span class="mr-2">✨</span>
+                  <span class="btn-text">Optimize with AI</span>
+                  <span class="loader w-4 h-4 ml-2 hidden"></span>
+                </button>
+              </div>
+
+              <!-- Search Filters -->
+              <div class="flex gap-2 pt-4">
+                <input
+                  type="text"
+                  id="hero-search"
+                  placeholder="Search hero..."
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <select
+                  id="hero-alignment"
+                  class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Any align</option>
+                  <option value="good">Good</option>
+                  <option value="bad">Bad</option>
+                  <option value="neutral">Neutral</option>
+                </select>
+                <button
+                  id="btn-search"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2"
+                >
+                  Search
+                </button>
+              </div>
+            </div>
+
+            <!-- Hero List -->
+            <div class="p-6 pt-0 flex-1 overflow-y-auto min-h-[400px]">
+              <div id="hero-list" class="divide-y divide-border">
+                <!-- Hero items injected here -->
+                <div class="text-center py-12 text-muted-foreground">
+                  Use the search controls above to browse available heroes.
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div
+              class="p-4 border-t border-border flex items-center justify-between bg-muted/50"
+            >
+              <span id="page-info" class="text-sm text-muted-foreground"
+                >Page 1</span
+              >
+              <div class="flex gap-2">
+                <button
+                  id="btn-prev-page"
+                  disabled
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent h-8 px-3 disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  id="btn-next-page"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent h-8 px-3"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Squad Selection Panel [NEW] -->
+          <div
+            class="rounded-lg border border-border bg-card text-card-foreground shadow-sm flex flex-col"
+          >
+            <div class="p-6 flex flex-col space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold">Your Squad</h3>
+                <span
+                  id="squad-count"
+                  class="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm font-bold"
+                  >0 / 0</span
+                >
+              </div>
+
+              <div
+                id="selected-heroes"
+                class="space-y-2 min-h-[100px] max-h-[300px] overflow-y-auto"
+              >
+                <p class="text-sm text-muted-foreground italic">
+                  No heroes selected yet.
+                </p>
+              </div>
+
+              <div
+                class="pt-4 border-t border-border flex items-center justify-between"
+              >
+                <span class="text-sm font-medium">Total Cost:</span>
+                <span id="total-squad-cost" class="font-mono text-lg font-bold"
+                  >0 💰</span
+                >
+              </div>
+
+              <button
+                id="btn-submit-manual-squad"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 w-full font-bold shadow-lg shadow-primary/20"
+              >
+                Submit Squad to Arena
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- AI Result Slide-in Sheet (shadcn style) -->
     <div id="ai-sheet-overlay" class="sheet-overlay fixed inset-0 z-50"></div>
-    <div id="ai-sheet"
-        class="sheet-content fixed inset-y-0 right-0 z-50 w-full sm:max-w-md border-l border-border bg-background p-6 shadow-2xl flex flex-col h-full overflow-y-auto">
-        <div class="flex flex-col space-y-2 mb-6">
-            <h2 class="text-lg font-semibold text-foreground">AI Optimization Result</h2>
-            <p class="text-sm text-muted-foreground">The AI advisor has analyzed the round constraints and built this
-                squad.</p>
+    <div
+      id="ai-sheet"
+      class="sheet-content fixed inset-y-0 right-0 z-50 w-full sm:max-w-md border-l border-border bg-background p-6 shadow-2xl flex flex-col h-full overflow-y-auto"
+    >
+      <div class="flex flex-col space-y-2 mb-6">
+        <h2 class="text-lg font-semibold text-foreground">
+          AI Optimization Result
+        </h2>
+        <p class="text-sm text-muted-foreground">
+          The AI advisor has analyzed the round constraints and built this
+          squad.
+        </p>
+      </div>
+
+      <div class="flex-1 space-y-6">
+        <div class="space-y-2">
+          <h4 class="text-sm font-semibold">Draft Options</h4>
+          <div id="ai-option-list" class="space-y-2"></div>
         </div>
 
-        <div class="flex-1 space-y-6">
-            <div class="space-y-2">
-                <h4 class="text-sm font-semibold">Draft Options</h4>
-                <div id="ai-option-list" class="space-y-2"></div>
-            </div>
-
-            <!-- Strategy & Reasoning -->
-            <div class="space-y-4">
-                <div class="rounded-md bg-muted p-4">
-                    <h4 class="text-sm font-semibold mb-1">Reasoning</h4>
-                    <p id="ai-reasoning" class="text-sm text-muted-foreground"></p>
-                </div>
-                <div class="rounded-md border border-border p-4">
-                    <h4 class="text-sm font-semibold mb-1">Battle Strategy</h4>
-                    <p id="ai-strategy" class="text-sm text-muted-foreground"></p>
-                </div>
-            </div>
-
-            <!-- Hero Roster -->
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <h4 class="text-sm font-semibold">Selected Roster</h4>
-                    <span id="ai-total-cost"
-                        class="text-sm font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground">Cost:
-                        0</span>
-                </div>
-                <!-- Hero IDs list -->
-                <ul id="ai-hero-ids"
-                    class="space-y-2 font-mono text-sm text-muted-foreground bg-black/20 p-3 rounded-md border border-border">
-                </ul>
-            </div>
-
-            <div id="submit-feedback" class="text-sm p-3 rounded-md hidden"></div>
+        <!-- Strategy & Reasoning -->
+        <div class="space-y-4">
+          <div class="rounded-md bg-muted p-4">
+            <h4 class="text-sm font-semibold mb-1">Reasoning</h4>
+            <p id="ai-reasoning" class="text-sm text-muted-foreground"></p>
+          </div>
+          <div class="rounded-md border border-border p-4">
+            <h4 class="text-sm font-semibold mb-1">Battle Strategy</h4>
+            <p id="ai-strategy" class="text-sm text-muted-foreground"></p>
+          </div>
         </div>
 
-        <div class="mt-6 flex gap-3 justify-end">
-            <button id="btn-close-sheet"
-                class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-                Cancel
-            </button>
-            <button id="btn-submit-squad"
-                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                Submit this Squad
-            </button>
+        <!-- Hero Roster -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold">Selected Roster</h4>
+            <span
+              id="ai-total-cost"
+              class="text-sm font-mono bg-secondary px-2 py-0.5 rounded text-secondary-foreground"
+              >Cost: 0</span
+            >
+          </div>
+          <!-- Hero IDs list -->
+          <ul
+            id="ai-hero-ids"
+            class="space-y-2 font-mono text-sm text-muted-foreground bg-black/20 p-3 rounded-md border border-border"
+          ></ul>
         </div>
+
+        <div id="submit-feedback" class="text-sm p-3 rounded-md hidden"></div>
+      </div>
+
+      <div class="mt-6 flex gap-3 justify-end">
+        <button
+          id="btn-close-sheet"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+        >
+          Cancel
+        </button>
+        <button
+          id="btn-submit-squad"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          Submit this Squad
+        </button>
+      </div>
     </div>
 
     <!-- Message Modal -->
-    <div id="error-modal-overlay"
-        class="sheet-overlay fixed inset-0 z-[60] flex items-center justify-center p-4 error-modal-hidden">
+    <div
+      id="error-modal-overlay"
+      class="sheet-overlay fixed inset-0 z-[60] flex items-center justify-center p-4 error-modal-hidden"
+    >
+      <div
+        class="bg-card border border-border rounded-lg shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200"
+      >
         <div
-            class="bg-card border border-border rounded-lg shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-            <div id="modal-header" class="flex items-center gap-3 text-destructive mb-4">
-                <span id="modal-icon" class="text-2xl">⚠️</span>
-                <h3 id="modal-title" class="text-xl font-bold">Error</h3>
-            </div>
-            <p id="error-modal-message" class="text-muted-foreground mb-6"></p>
-            <div class="flex justify-end">
-                <button id="btn-close-error"
-                    class="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-md font-medium transition-colors">
-                    Close
-                </button>
-            </div>
+          id="modal-header"
+          class="flex items-center gap-3 text-destructive mb-4"
+        >
+          <span id="modal-icon" class="text-2xl">⚠️</span>
+          <h3 id="modal-title" class="text-xl font-bold">Error</h3>
         </div>
+        <p id="error-modal-message" class="text-muted-foreground mb-6"></p>
+        <div class="flex justify-end">
+          <button
+            id="btn-close-error"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 rounded-md font-medium transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Application Logic -->
+    <script src="js/team-storage.js"></script>
     <script src="js/app.js"></script>
-</body>
-
+  </body>
 </html>

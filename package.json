@@ -1,0 +1,8 @@
+{
+  "name": "battle-contender-frontend",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "node --test src/test/javascript/**/*.test.js"
+  }
+}

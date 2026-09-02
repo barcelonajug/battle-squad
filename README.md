@@ -19,25 +19,25 @@ Before wiring `TodoWriteTool`, treat `MessageChatMemoryAdvisor` as a prerequisit
 This workshop is meant to be followed in this exact order. The README and the TODO comments in `BattleAdvisorService` use the same step names.
 
 1. **Build the tools**
-Implement the Arena API wrappers in [`HeroSearchTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java) and [`ArenaManagementTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java). Keep them stateless and focused on API access only.
+   Implement the Arena API wrappers in [`HeroSearchTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java) and [`ArenaManagementTool.java`](src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java). Keep them stateless and focused on API access only.
 
 2. **Configure `BattleAdvisorService`**
-Wire those tools into [`BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return the structured response that the UI can render.
+   Wire those tools into [`BattleAdvisorService.java`](src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java), define the drafting strategies, and return the structured response that the UI can render.
 
 3. **Add chat memory first**
-Before using `TodoWriteTool`, configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`. This is required so the optimization run has one dedicated memory channel.
+   Before using `TodoWriteTool`, configure `MessageChatMemoryAdvisor` and scope it by `teamId`, `sessionId`, and `roundNo`. This is required so the optimization run has one dedicated memory channel.
 
 4. **Add `TodoWriteTool` on top of chat memory**
-Once chat memory is in place, register `TodoWriteTool` so the agent can maintain a visible optimization checklist while it works. The intent is: memory stores the conversation for the run, and TodoWrite exposes the current task list inside that same run.
+   Once chat memory is in place, register `TodoWriteTool` so the agent can maintain a visible optimization checklist while it works. The intent is: memory stores the conversation for the run, and TodoWrite exposes the current task list inside that same run.
 
 5. **Use round-aware hero search**
-The arena v3 API adds allowed roles, genders, races, publishers, and alignments to `RoundSpec`, plus `/api/heroes/search/advanced`. In this branch, the model and client already support those fields. The remaining TODO is to make the tools use round-aware advanced search so the drafter starts from candidates that already fit the round.
+   The arena v3 API adds allowed roles, genders, races, publishers, and alignments to `RoundSpec`, plus `/api/heroes/search/advanced`. In this branch, the model and client already support those fields. The remaining TODO is to make the tools use round-aware advanced search so the drafter starts from candidates that already fit the round.
 
 6. **Validate every draft deterministically**
-After the model drafts a squad, validate it against team size, budget, required roles, banned tags, and the new allowed-value constraints before presenting the result or submitting it.
+   After the model drafts a squad, validate it against team size, budget, required roles, banned tags, and the new allowed-value constraints before presenting the result or submitting it.
 
 7. **Expose multiple draft options**
-Return `DraftOptionsResponse` so the UI can show several candidate squads and highlight the recommended one.
+   Return `DraftOptionsResponse` so the UI can show several candidate squads and highlight the recommended one.
 
 ### How To Read The Code
 
@@ -47,9 +47,9 @@ On the `main` branch, the TODO comments inside `BattleAdvisorService` are not a 
 
 Look for `UnsupportedOperationException("TODO:...")` in the codebase. The main workshop files are:
 
-* `src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java`
-* `src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java`
-* `src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`
+- `src/main/java/org/barcelonajug/battlecontender/ai/tools/HeroSearchTool.java`
+- `src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java`
+- `src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`
 
 The `main` branch keeps these steps as attendee-facing TODOs. The `solution` branch implements the same workflow end to end.
 
@@ -63,20 +63,20 @@ You can verify your implementation by running:
 
 ### Prerequisites
 
-* **Java 25** installed on your machine.
-* An API Key for your preferred AI Provider.
+- **Java 25** installed on your machine.
+- An API Key for your preferred AI Provider.
 
 ### 1. Choose Your AI Provider
 
 This project is configured with Maven profiles to support multiple AI providers. You only need to use **one**.
 
-| Profile | Provider | Required Config |
-| :--- | :--- | :--- |
-| `openai` | OpenAI | `OPENAI_API_KEY` |
-| `vertex-ai` | Google Vertex AI | `GCP_PROJECT_ID` & `GCP_LOCATION` |
-| `anthropic` | Anthropic | `ANTHROPIC_API_KEY` |
-| `ollama` | Ollama (Local) | *Make sure Ollama is running (`llama3.2`)* |
-| `github-copilot` | GitHub Models (OpenAI-compatible) | `GITHUB_TOKEN` |
+| Profile          | Provider                          | Required Config                            |
+| :--------------- | :-------------------------------- | :----------------------------------------- |
+| `openai`         | OpenAI                            | `OPENAI_API_KEY`                           |
+| `vertex-ai`      | Google Vertex AI                  | `GCP_PROJECT_ID` & `GCP_LOCATION`          |
+| `anthropic`      | Anthropic                         | `ANTHROPIC_API_KEY`                        |
+| `ollama`         | Ollama (Local)                    | _Make sure Ollama is running (`llama3.2`)_ |
+| `github-copilot` | GitHub Models (OpenAI-compatible) | `GITHUB_TOKEN`                             |
 
 ### 2. Configure Credentials
 
@@ -133,7 +133,7 @@ Use the Maven wrapper to run the project with the desired profile:
 Once the application starts, navigate to:
 **<http://localhost:8080>**
 
-1. Register your team.
+1. Register your team (the Team ID is persisted in local storage across browser refreshes).
 2. Ensure the active Session is loaded.
 3. Select an Open Round.
 4. Click the **"✨ Optimize with AI"** button to see your AI code in action!
