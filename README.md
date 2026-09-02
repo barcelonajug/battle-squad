@@ -2,7 +2,7 @@
 
 ![Battle Contender Banner](src/main/resources/static/banner-v2.png)
 
-Welcome to the **Battle Contender** workshop template! In this workshop, you will learn how to build an AI-powered agent using **Spring Boot 4**, **Spring AI 2.0**, and **Java 25**. Your agent will interact with the "Superhero Battle Arena" API to register a team, analyze game constraints, and use an LLM advisor to pick an optimal hero squad within a budget!
+Welcome to the **Battle Contender** workshop template! In this workshop, you will learn how to build an AI-powered agent using **Spring Boot 4**, **Spring AI 2.0**, and **Java 25**. This project is set to interact with the superhero battle arena deployed at [https://superhero-battle-arena.barcelonajug.org/](https://superhero-battle-arena.barcelonajug.org/) to register a team, analyze game constraints, and use an LLM advisor to pick an optimal hero squad within a budget!
 
 ## 🚀 Workshop Structure
 
@@ -132,6 +132,8 @@ Use the Maven wrapper to run the project with the desired profile:
 
 Once the application starts, navigate to:
 **<http://localhost:8080>**
+
+This application connects to the live Superhero Battle Arena deployed at [https://superhero-battle-arena.barcelonajug.org/](https://superhero-battle-arena.barcelonajug.org/):
 
 1. Register your team (the Team ID is persisted in local storage across browser refreshes).
 2. Ensure the active Session is loaded.
