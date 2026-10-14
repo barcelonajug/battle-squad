@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env.local[.properties]
   application:
     name: battle-contender
 
@@ -14,6 +16,8 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:your-openai-key-here}
+      timeout: 30s
+      max-retries: 0
       chat:
         options:
           model: gpt-4o-mini

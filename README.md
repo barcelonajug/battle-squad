@@ -19,16 +19,16 @@ For the solution branch, configure `MessageChatMemoryAdvisor` first and then lay
 This workshop is meant to be followed in this exact order. The README and the implementation now use the same step names and the same overall flow.
 
 1. **Build the tools**
-`HeroSearchTool` and `ArenaManagementTool` wrap the arena API. They stay stateless and focused on API access, including round-aware hero search through `/api/heroes/search/advanced`.
+`HeroSearchTool` and `ArenaManagementTool` wrap the arena API. Round-aware hero discovery uses `/api/heroes/search/advanced` and caches the eligible pool for each session and round.
 
 2. **Configure `BattleAdvisorService`**
 `BattleAdvisorService` wires the tools into Spring AI, defines the drafting strategies, and returns the structured response that the UI renders.
 
-3. **Add chat memory first**
-`MessageChatMemoryAdvisor` is configured before `TodoWriteTool` and scoped by `teamId`, `sessionId`, and `roundNo`, so each optimization run has one durable memory channel.
+3. **Scope each drafting conversation**
+`MessageChatMemoryAdvisor` keeps the tool-call conversation scoped by team, session, round, and drafting strategy.
 
-4. **Add `TodoWriteTool` on top of chat memory**
-With that memory in place, `TodoWriteTool` keeps the visible optimization checklist for the current run. In practice: memory holds the run context, and TodoWrite exposes the evolving task list inside that same run.
+4. **Vary candidates across teams**
+Each strategy sees a stable team-specific sample drawn from the wider round-eligible hero pool. On open rounds with a tight budget, the sample includes both low-cost and mid-cost heroes. If a model draft is invalid or ignores its sample, the app builds a team-specific alternative and passes it through the same round validator before considering it. Budget alternatives prefer the cheapest eligible heroes; aggressive alternatives prioritize offensive statistics.
 
 5. **Use round-aware advanced search**
 The solution branch supports the arena v3 round constraints. `RoundSpec` includes allowed roles, genders, races, publishers, and alignments, and `HeroSearchTool` exposes round-aware advanced search so the drafter starts from candidates that already fit the round.
@@ -38,6 +38,8 @@ The solution branch supports the arena v3 round constraints. `RoundSpec` include
 
 7. **Expose multiple draft options**
 The final response is `DraftOptionsResponse`, which lets the UI present several candidate squads and mark one recommended option.
+
+The four drafting strategies run concurrently. The browser receives progress events as each draft is validated and reviewed, then displays the final recommendation. The original `/api/contender/optimize` JSON endpoint remains available; the UI uses `/api/contender/optimize/stream` for progress.
 
 ### How To Read This Branch
 
@@ -55,6 +57,10 @@ You can verify the implementation by running:
 
 * **Java 25** installed on your machine.
 * An API Key for your preferred AI Provider.
+
+To rate valid squad drafts, also set `TYPESAFE_API_KEY`. After deterministic validation, TypeSafe Jev gives each squad one competitiveness rating based on power statistics, roles, and explicit tag bonuses. A map name alone is not treated as a combat rule. The UI shows this single rating and whether it is tentative; confidence remains an internal reliability check. Registered teams are assigned different preferred strategies in registration order, cycling through Balanced, Budget, Synergy, and Aggressive. If a team's preferred draft is invalid or its registration cannot be found, the highest-rated valid draft with usable confidence is recommended; if none has a usable rating, the cheapest valid draft is recommended. Submission always applies the arena rules independently of Jev.
+
+Put `TYPESAFE_API_KEY=...` in `.env.local` at the project root, or export it before starting the app. The local file is ignored by Git. Jev is optional; without a key, the app starts and uses the cost fallback.
 
 ### 1. Choose Your AI Provider
 

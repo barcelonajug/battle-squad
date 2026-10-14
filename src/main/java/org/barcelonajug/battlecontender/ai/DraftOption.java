@@ -9,5 +9,8 @@ public record DraftOption(
         SquadRecommendation recommendation,
         boolean recommended,
         boolean valid,
-        List<String> violations) {
+        List<String> violations,
+        Double evaluationScore,
+        Double evaluationConfidence,
+        String evaluationStatus) {
 }

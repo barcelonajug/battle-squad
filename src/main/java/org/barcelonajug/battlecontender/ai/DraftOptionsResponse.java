@@ -4,5 +4,6 @@ import java.util.List;
 
 public record DraftOptionsResponse(
         List<DraftOption> options,
-        String recommendedStrategyId) {
+        String recommendedStrategyId,
+        String selectionMethod) {
 }

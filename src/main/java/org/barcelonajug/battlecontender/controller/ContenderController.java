@@ -6,9 +6,17 @@ import org.barcelonajug.battlecontender.ai.SquadRecommendation;
 import org.barcelonajug.battlecontender.ai.SquadValidationService;
 import org.barcelonajug.battlecontender.client.ArenaApiClient;
 import org.barcelonajug.battlecontender.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import com.openai.errors.RateLimitException;
+import com.openai.errors.UnauthorizedException;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,6 +24,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/contender")
 public class ContenderController {
+
+    private static final Logger log = LoggerFactory.getLogger(ContenderController.class);
 
     private final ArenaApiClient arenaApiClient;
     private final BattleAdvisorService battleAdvisorService;
@@ -70,6 +80,53 @@ public class ContenderController {
                 request.teamId(),
                 request.roundNo(),
                 request.sessionId());
+    }
+
+    @PostMapping(value = "/optimize/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter optimizeSquadWithProgress(@RequestBody OptimizeRequest request) {
+        SseEmitter emitter = new SseEmitter(600_000L);
+        Thread.startVirtualThread(() -> {
+            try {
+                sendEvent(emitter, "progress", new BattleAdvisorService.OptimizationProgress(0, 0, 4));
+                DraftOptionsResponse response = battleAdvisorService.buildOptimalSquad(
+                        request.teamId(), request.roundNo(), request.sessionId(),
+                        progress -> sendEvent(emitter, "progress", progress));
+                sendEvent(emitter, "result", response);
+            } catch (Exception ex) {
+                log.error("Squad optimization failed", ex);
+                sendEvent(emitter, "error", Map.of("detail", optimizationErrorMessage(ex)));
+            } finally {
+                emitter.complete();
+            }
+        });
+        return emitter;
+    }
+
+    private void sendEvent(SseEmitter emitter, String name, Object data) {
+        try {
+            synchronized (emitter) {
+                emitter.send(SseEmitter.event().name(name).data(data));
+            }
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    private String optimizationErrorMessage(Exception ex) {
+        Throwable cause = ex.getCause() == null ? ex : ex.getCause();
+        if (cause instanceof UnauthorizedException) {
+            return "OpenAI rejected the configured API key. Check OPENAI_API_KEY and restart the app.";
+        }
+        if (cause instanceof RateLimitException) {
+            return "OpenAI is rate limiting requests. Please try again later.";
+        }
+        if (cause instanceof java.util.concurrent.TimeoutException) {
+            return "The AI took too long to prepare a squad. Please retry; your registered team is still saved.";
+        }
+        if (cause instanceof IllegalArgumentException) {
+            return cause.getMessage();
+        }
+        return "Optimization failed. Please try again or check the server logs.";
     }
 
     @PostMapping("/submit")

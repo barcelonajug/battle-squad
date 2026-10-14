@@ -5,6 +5,10 @@ $(document).ready(function () {
     let activeRoundNo = null;
     let currentRecommendation = null;
     let currentDraftOptions = [];
+    let selectionMethod = 'COST_FALLBACK';
+    let submissionInFlight = false;
+    const submittedRounds = new Set();
+    const teamStorageKey = 'battle-squad.registered-team.v1';
 
     // Pagination and Squad State
     let currentPage = 0;
@@ -41,6 +45,75 @@ $(document).ready(function () {
             || 'Something went wrong';
     }
 
+    function submissionKey() {
+        return `${currentTeamId}:${currentSessionId}:${activeRoundNo}`;
+    }
+
+    function refreshSubmitButtons() {
+        const submitted = submittedRounds.has(submissionKey());
+        $('#btn-submit-squad')
+            .prop('disabled', submitted || submissionInFlight || !currentRecommendation?.valid)
+            .text(submitted ? 'Submitted' : submissionInFlight ? 'Submitting...' : 'Submit this Squad');
+        $('#btn-submit-manual-squad')
+            .prop('disabled', submitted || submissionInFlight)
+            .text(submitted ? 'Submitted' : submissionInFlight ? 'Submitting...' : 'Submit Squad to Arena');
+    }
+
+    function markRoundSubmitted(key) {
+        submittedRounds.add(key);
+        submissionInFlight = false;
+        saveTeamToStorage();
+        refreshSubmitButtons();
+    }
+
+    function showRegisteredTeam() {
+        $('#team-id-display')
+            .html('<strong>Team ID:</strong><br>')
+            .append(document.createTextNode(currentTeamId))
+            .removeClass('hidden');
+        checkAIAvailability();
+        refreshSubmitButtons();
+    }
+
+    function saveTeamToStorage() {
+        try {
+            localStorage.setItem(teamStorageKey, JSON.stringify({
+                teamId: currentTeamId,
+                sessionId: currentSessionId,
+                name: $('#reg-team-name').val(),
+                members: $('#reg-members').val(),
+                submittedRounds: Array.from(submittedRounds)
+                    .filter(key => key.startsWith(`${currentTeamId}:${currentSessionId}:`))
+            }));
+        } catch (error) {
+            console.warn('Could not save the registered team in this browser.', error);
+        }
+    }
+
+    function restoreTeamFromStorage() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(teamStorageKey));
+            if (!saved) return;
+            if (saved.sessionId !== currentSessionId || typeof saved.teamId !== 'string') {
+                localStorage.removeItem(teamStorageKey);
+                return;
+            }
+
+            currentTeamId = saved.teamId;
+            $('#reg-team-name').val(saved.name || '');
+            $('#reg-members').val(saved.members || '');
+            if (Array.isArray(saved.submittedRounds)) {
+                saved.submittedRounds
+                    .filter(key => typeof key === 'string'
+                        && key.startsWith(`${currentTeamId}:${currentSessionId}:`))
+                    .forEach(key => submittedRounds.add(key));
+            }
+            showRegisteredTeam();
+        } catch (error) {
+            console.warn('Could not restore the registered team from this browser.', error);
+        }
+    }
+
     $('#btn-close-error').on('click', function () {
         $('#error-modal-overlay').addClass('error-modal-hidden').removeClass('open');
     });
@@ -50,6 +123,7 @@ $(document).ready(function () {
         if (session && session.active) {
             currentSessionId = session.sessionId;
             $('#session-badge').removeClass('hidden').text(`Session: ${session.sessionId.substring(0, 8)}...`);
+            restoreTeamFromStorage();
             loadRounds(currentSessionId);
             loadHeroes(); // Initial fetch
         }
@@ -76,10 +150,9 @@ $(document).ready(function () {
             data: JSON.stringify(payload),
             success: function (response) {
                 currentTeamId = response.teamId;
-                $('#team-id-display')
-                    .html(`<strong>Team ID:</strong><br>${currentTeamId}`)
-                    .removeClass('hidden');
-                checkAIAvailability();
+                submittedRounds.clear();
+                saveTeamToStorage();
+                showRegisteredTeam();
             },
             error: function (xhr) {
                 showMessage(getErrorDescription(xhr));
@@ -124,6 +197,7 @@ $(document).ready(function () {
             roundConstraints = spec;
             checkAIAvailability();
             updateSquadUI();
+            refreshSubmitButtons();
 
             let rolesHtml = '';
             if (spec.requiredRoles) Object.entries(spec.requiredRoles).forEach(([k, v]) => rolesHtml += `<span class="bg-secondary px-2 py-0.5 rounded mr-1">${v}x ${k}</span>`);
@@ -354,6 +428,14 @@ $(document).ready(function () {
             const selectedClass = selected ? 'ring-2 ring-primary bg-primary/5' : 'bg-card';
             const statusText = option.valid ? 'Valid' : 'Invalid';
             const badgeClass = option.valid ? 'text-primary' : 'text-destructive';
+            const evaluationText = option.evaluationStatus === 'EVALUATED'
+                ? `Squad rating ${option.evaluationScore.toFixed(0)}/100`
+                : option.evaluationStatus === 'LOW_CONFIDENCE'
+                    ? option.evaluationScore == null ? 'Squad rating tentative'
+                        : `Squad rating ${option.evaluationScore.toFixed(0)}/100 · tentative`
+                    : option.evaluationStatus === 'DRAFT_FAILED'
+                        ? 'Draft failed; other options remain available'
+                    : option.valid ? 'Squad rating unavailable' : 'Squad rating skipped';
 
             list.append(`
                 <button type="button" data-strategy-id="${option.strategyId}"
@@ -362,6 +444,7 @@ $(document).ready(function () {
                         <div>
                             <div class="text-sm font-semibold">${option.label}</div>
                             <div class="text-xs text-muted-foreground">${option.summary}</div>
+                            <div class="text-xs text-muted-foreground">${evaluationText}</div>
                         </div>
                         <div class="text-right">
                             <div class="text-xs font-semibold ${badgeClass}">${statusText}</div>
@@ -396,17 +479,64 @@ $(document).ready(function () {
 
         if (!option.valid) {
             heroesList.append(`<li class="text-destructive">Violations: ${option.violations.join(' ')}</li>`);
-            $('#btn-submit-squad').prop('disabled', true);
-        } else {
-            $('#btn-submit-squad').prop('disabled', false);
         }
+        refreshSubmitButtons();
     }
 
-    $('#btn-ai-optimize').on('click', function () {
+    async function readOptimizationEvents(response, onEvent) {
+        if (!response.body) throw new Error('The browser could not read optimization progress.');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let result = null;
+
+        function processEvent(block) {
+            const lines = block.split('\n');
+            const event = lines.find(line => line.startsWith('event:'))?.slice(6).trim();
+            const data = lines.filter(line => line.startsWith('data:'))
+                .map(line => line.slice(5).trimStart()).join('\n');
+            if (!event || !data) return;
+            const value = JSON.parse(data);
+            if (event === 'error') throw new Error(value.detail || 'Optimization failed.');
+            if (event === 'result') result = value;
+            onEvent(event, value);
+        }
+
+        while (true) {
+            const { value, done } = await reader.read();
+            buffer += decoder.decode(value || new Uint8Array(), { stream: !done }).replace(/\r/g, '');
+            let end;
+            while ((end = buffer.indexOf('\n\n')) >= 0) {
+                processEvent(buffer.slice(0, end));
+                buffer = buffer.slice(end + 2);
+            }
+            if (done) break;
+        }
+        if (buffer.trim()) processEvent(buffer);
+        if (!result) throw new Error('The optimizer connection closed before the recommendation was ready. Please retry.');
+        return result;
+    }
+
+    function optimizationErrorDescription(error) {
+        if (error instanceof TypeError || /network error|failed to fetch|load failed/i.test(error?.message || '')) {
+            return 'The connection to the optimizer was interrupted. Please retry; your registered team is still saved.';
+        }
+        return error?.message || 'Optimization failed.';
+    }
+
+    $('#btn-ai-optimize').on('click', async function () {
         const btn = $(this);
         btn.prop('disabled', true);
         btn.find('.loader').removeClass('hidden');
-        btn.find('.btn-text').text('AI is thinking...');
+        btn.find('.btn-text').text('Optimizing...');
+        $('#ai-progress').removeClass('hidden');
+        $('#ai-progress-text').text('Starting optimization...');
+        $('#ai-progress-bar').css('width', '0%');
+        const startedAt = Date.now();
+        const timer = setInterval(() => {
+            $('#ai-progress-time').text(`${Math.floor((Date.now() - startedAt) / 1000)}s`);
+        }, 1000);
+        $('#ai-progress-time').text('0s');
 
         const payload = {
             teamId: currentTeamId,
@@ -414,43 +544,57 @@ $(document).ready(function () {
             sessionId: currentSessionId
         };
 
-        $.ajax({
-            url: '/api/contender/optimize',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(payload),
-            success: function (resp) {
-                currentDraftOptions = resp.options || [];
-                const recommendedOption = currentDraftOptions.find(o => o.strategyId === resp.recommendedStrategyId)
-                    || currentDraftOptions.find(o => o.recommended)
-                    || currentDraftOptions[0];
-
-                if (!recommendedOption) {
-                    showMessage('No draft options were produced.');
-                    return;
-                }
-
-                setSelectedRecommendation(recommendedOption);
-
-                openSheet();
-            },
-            error: function (xhr) {
-                showMessage(getErrorDescription(xhr));
-            },
-            complete: function () {
-                btn.prop('disabled', false);
-                btn.find('.loader').addClass('hidden');
-                btn.find('.btn-text').text('Optimize with AI');
+        try {
+            const response = await fetch('/api/contender/optimize/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.detail || error.error || `Optimization failed (${response.status}).`);
             }
-        });
+            const resp = await readOptimizationEvents(response, (event, progress) => {
+                if (event !== 'progress') return;
+                const { draftsCompleted, reviewsCompleted, total } = progress;
+                $('#ai-progress-text').text(`Drafts ${draftsCompleted}/${total} · Reviews ${reviewsCompleted}/${total}`);
+                $('#ai-progress-bar').css('width', `${Math.round(100 * (draftsCompleted + reviewsCompleted) / (2 * total))}%`);
+            });
+            currentDraftOptions = resp.options || [];
+            selectionMethod = resp.selectionMethod || 'COST_FALLBACK';
+            $('#ai-selection-method').text(selectionMethod === 'TEAM_STRATEGY'
+                ? 'This team favors a distinct strategy. You can choose another valid squad.'
+                : selectionMethod === 'JEV'
+                    ? 'Highest-rated valid squad recommended.'
+                    : 'No reliable rating; cheapest valid squad recommended.');
+            const recommendedOption = currentDraftOptions.find(o => o.strategyId === resp.recommendedStrategyId)
+                || currentDraftOptions.find(o => o.recommended)
+                || currentDraftOptions[0];
+
+            if (!recommendedOption) throw new Error('No draft options were produced.');
+            $('#ai-progress-text').text('Optimization complete.');
+            $('#ai-progress-bar').css('width', '100%');
+            setSelectedRecommendation(recommendedOption);
+            openSheet();
+        } catch (error) {
+            $('#ai-progress-text').text('Optimization stopped.');
+            showMessage(optimizationErrorDescription(error));
+        } finally {
+            clearInterval(timer);
+            btn.prop('disabled', false);
+            btn.find('.loader').addClass('hidden');
+            btn.find('.btn-text').text('Optimize with AI');
+        }
     });
 
     // 7. Submit Squad
     $('#btn-submit-squad').on('click', function () {
-        if (!currentRecommendation || !currentRecommendation.valid) return;
+        if (!currentRecommendation || !currentRecommendation.valid || submissionInFlight
+            || submittedRounds.has(submissionKey())) return;
 
-        const btn = $(this);
-        btn.prop('disabled', true).text('Submitting...');
+        const key = submissionKey();
+        submissionInFlight = true;
+        refreshSubmitButtons();
         $('#submit-feedback').removeClass('bg-destructive/20 text-destructive bg-green-500/20 text-green-500').hide();
 
         const payload = {
@@ -467,22 +611,31 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify(payload),
             success: function () {
+                markRoundSubmitted(key);
                 $('#submit-feedback')
                     .text('✅ Squad submitted successfully to the Arena!')
                     .addClass('bg-green-500/20 text-green-400')
                     .show();
             },
             error: function (xhr) {
+                if (xhr?.responseJSON?.code === 'ALREADY_SUBMITTED') {
+                    markRoundSubmitted(key);
+                }
                 $('#submit-feedback')
                     .text(`❌ ${getErrorDescription(xhr)}`)
                     .addClass('bg-destructive/20 text-destructive')
                     .show();
             },
+            complete: function () {
+                submissionInFlight = false;
+                refreshSubmitButtons();
+            }
         });
     });
 
     // 8. Manual Squad Submission
     $('#btn-submit-manual-squad').on('click', function () {
+        if (submissionInFlight || submittedRounds.has(submissionKey())) return;
         if (!currentTeamId) {
             showMessage("Please register your team first.");
             return;
@@ -510,8 +663,9 @@ $(document).ready(function () {
             }
         }
 
-        const btn = $(this);
-        btn.prop('disabled', true).text('Submitting...');
+        const key = submissionKey();
+        submissionInFlight = true;
+        refreshSubmitButtons();
 
         const payload = {
             teamId: currentTeamId,
@@ -527,13 +681,18 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify(payload),
             success: function () {
+                markRoundSubmitted(key);
                 showMessage("Squad submitted successfully to the Arena!", 'success');
             },
             error: function (xhr) {
+                if (xhr?.responseJSON?.code === 'ALREADY_SUBMITTED') {
+                    markRoundSubmitted(key);
+                }
                 showMessage(getErrorDescription(xhr));
             },
             complete: function () {
-                btn.prop('disabled', false).text('Submit Squad to Arena');
+                submissionInFlight = false;
+                refreshSubmitButtons();
             }
         });
     });

@@ -157,6 +157,16 @@
                             </button>
                         </div>
 
+                        <div id="ai-progress" class="hidden rounded-md border border-border bg-secondary/50 p-3 text-sm" role="status" aria-live="polite">
+                            <div class="flex justify-between gap-3">
+                                <span id="ai-progress-text">Starting optimization...</span>
+                                <span id="ai-progress-time" class="text-muted-foreground" aria-hidden="true">0s</span>
+                            </div>
+                            <div class="mt-2 h-2 overflow-hidden rounded-full bg-background">
+                                <div id="ai-progress-bar" class="h-full bg-primary transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
                         <!-- Search Filters -->
                         <div class="flex gap-2 pt-4">
                             <input type="text" id="hero-search" placeholder="Search hero..."
@@ -237,6 +247,7 @@
         <div class="flex-1 space-y-6">
             <div class="space-y-2">
                 <h4 class="text-sm font-semibold">Draft Options</h4>
+                <p id="ai-selection-method" class="text-xs text-muted-foreground"></p>
                 <div id="ai-option-list" class="space-y-2"></div>
             </div>
 
