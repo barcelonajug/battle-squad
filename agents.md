@@ -12,21 +12,16 @@ When working with Java in this project (which targets Java 25):
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    ```
 
-2. **Select Java Version**:
+2. **Select Java Version 25-tem **:
 
    ```bash
-   sdk use java 25-tem
+   sdk env
    ```
 
-3. **Check or List Installed Versions**:
+3. **If the Java Version 25-tem is not installed**:
 
    ```bash
-   sdk list java
-   ```
-
-4. **Set Default Version (if needed)**:
-   ```bash
-   sdk default java 25-tem
+   sdk env install
    ```
 
 ### Node.js Management with NVM
