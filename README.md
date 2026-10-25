@@ -10,7 +10,7 @@ This repository contains the `main` branch, which serves as the starter project.
 
 Your goal is to implement the **Spring AI** layer.
 
-The `main` branch now includes the multi-phase drafting workflow as TODO scaffolding. The `solution` branch contains the full working example, including a visible draft-option list and the complete orchestration flow.
+The `main` branch now includes the multi-phase drafting workflow as TODO scaffolding. The `solution-subagents` branch contains the full working reference implementation matching all 7 steps, including `TodoWriteTool`, chat memory, drafting subagents, and the complete orchestration flow.
 
 Before wiring `TodoWriteTool`, treat `MessageChatMemoryAdvisor` as a prerequisite in both branches. The todo checklist only remains coherent if the optimization run has a dedicated memory channel scoped by `teamId`, `sessionId`, and `roundNo`.
 
@@ -51,7 +51,7 @@ Look for `UnsupportedOperationException("TODO:...")` in the codebase. The main w
 - `src/main/java/org/barcelonajug/battlecontender/ai/tools/ArenaManagementTool.java`
 - `src/main/java/org/barcelonajug/battlecontender/ai/BattleAdvisorService.java`
 
-The `main` branch keeps these steps as attendee-facing TODOs. The `solution` branch implements the same workflow end to end.
+The `main` branch keeps these steps as attendee-facing TODOs. The `solution-subagents` branch implements the same workflow end to end.
 
 You can verify your implementation by running:
 
@@ -63,58 +63,91 @@ You can verify your implementation by running:
 
 ### Prerequisites
 
-- **Java 25** installed on your machine.
-- An API Key for your preferred AI Provider.
+- **Full Java 25 JDK** installed on your machine (Java Development Kit, not JRE; standard distributions like Eclipse Temurin 25 or Amazon Corretto 25 work without preview flags).
+- An API Key or local model for your preferred AI Provider. See [docs/api-keys-setup.md](docs/api-keys-setup.md) for free options, obtaining keys, and setting spending limits.
+
+#### Installing Java 25 with SDKMAN (Recommended for macOS / Linux / WSL)
+
+If you do not have SDKMAN installed, run:
+
+```bash
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+```
+
+Once installed, use the repository's `.sdkmanrc` configuration:
+
+```bash
+sdk env install
+sdk env
+```
+
+Verify your active version:
+
+```bash
+java -version
+```
+
+_(Ensure the output displays version 25)_
+
+If you are not using SDKMAN (e.g. Windows native or Homebrew), download a JDK 25 distribution from [Adoptium (Eclipse Temurin)](https://adoptium.net/) and ensure `JAVA_HOME` points to your JDK 25 directory.
 
 ### 1. Choose Your AI Provider
 
 This project is configured with Maven profiles to support multiple AI providers. You only need to use **one**.
 
-| Profile          | Provider                          | Required Config                            |
-| :--------------- | :-------------------------------- | :----------------------------------------- |
-| `openai`         | OpenAI                            | `OPENAI_API_KEY`                           |
-| `vertex-ai`      | Google Vertex AI                  | `GCP_PROJECT_ID` & `GCP_LOCATION`          |
-| `anthropic`      | Anthropic                         | `ANTHROPIC_API_KEY`                        |
-| `ollama`         | Ollama (Local)                    | _Make sure Ollama is running (`llama3.2`)_ |
-| `github-copilot` | GitHub Models (OpenAI-compatible) | `GITHUB_TOKEN`                             |
+> [!TIP]
+> **Looking for a free option?**
+>
+> - **GitHub Models (`github-copilot`)**: 100% free with any personal GitHub account (no credit card needed).
+> - **Ollama (`ollama`)**: 100% free, running locally on your own machine.
+>
+> For full instructions on obtaining keys, setting \$5 budget limits, and security best practices, read the **[AI Provider API Keys Guide](docs/api-keys-setup.md)**.
+
+| Profile          | Provider                          |   Cost / Tier    | Model                     | Required Config                            |
+| :--------------- | :-------------------------------- | :--------------: | :------------------------ | :----------------------------------------- |
+| `github-copilot` | GitHub Models (OpenAI-compatible) |     **Free**     | `gpt-4o-mini`             | `GITHUB_TOKEN`                             |
+| `ollama`         | Ollama (Local)                    |     **Free**     | `llama3.2`                | _Make sure Ollama is running (`llama3.2`)_ |
+| `vertex-ai`      | Google Vertex AI                  | Free Trial / GCP | `gemini-2.5-flash`        | `GCP_PROJECT_ID` & `GCP_LOCATION`          |
+| `openai`         | OpenAI                            |  Pay-as-you-go   | `gpt-4o-mini`             | `OPENAI_API_KEY`                           |
+| `anthropic`      | Anthropic                         |  Pay-as-you-go   | `claude-3-5-haiku-latest` | `ANTHROPIC_API_KEY`                        |
 
 ### 2. Configure Credentials
 
-Create a `.env` file in the root of the project to set your API key.
+Create a `.env` file in the root of the project to set your credentials (this file is automatically loaded on startup and ignored by git).
+
+**For GitHub Models (GitHub Copilot - Recommended Free):**
+
+```properties
+GITHUB_TOKEN=ghp_your-personal-access-token
+```
+
+**For Ollama (Local Free):**
+
+No credentials needed! Just ensure Ollama is running with `llama3.2`.
 
 **For OpenAI:**
 
-Create a `.env` file and add:
-
 ```properties
-OPENAI_API_KEY=your-api-key
+OPENAI_API_KEY=sk-proj-your-openai-key
 ```
 
-**For Vertex AI:**
-
-Create a `.env` file and add:
+**For Google Vertex AI:**
 
 ```properties
-GCP_PROJECT_ID=your-project
+GCP_PROJECT_ID=your-project-id
 GCP_LOCATION=europe-west1
-# Ensure you are authenticated with gcloud: `gcloud auth application-default login`
+# Ensure you are authenticated with gcloud: gcloud auth application-default login
 ```
 
 **For Anthropic:**
 
-Create a `.env` file and add:
-
 ```properties
-ANTHROPIC_API_KEY=your-api-key
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
 ```
 
-**For GitHub Models (GitHub Copilot):**
-
-Create a `.env` file and add:
-
-```properties
-GITHUB_TOKEN=your-github-token
-```
+> [!IMPORTANT]
+> **Safety Reminder**: If using paid providers (OpenAI or Anthropic), always configure a **$5 hard spend limit** in their platform billing dashboard, and delete your API key after the workshop. Detailed steps are in [docs/api-keys-setup.md](docs/api-keys-setup.md).
 
 ### 3. Run the Application
 
