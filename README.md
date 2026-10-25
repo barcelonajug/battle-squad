@@ -109,7 +109,7 @@ This project is configured with Maven profiles to support multiple AI providers.
 | `github-copilot` | GitHub Models (OpenAI-compatible) |     **Free**     | `gpt-4o-mini`             | `GITHUB_TOKEN`                             |
 | `ollama`         | Ollama (Local)                    |     **Free**     | `llama3.2`                | _Make sure Ollama is running (`llama3.2`)_ |
 | `vertex-ai`      | Google Vertex AI                  | Free Trial / GCP | `gemini-2.5-flash`        | `GCP_PROJECT_ID` & `GCP_LOCATION`          |
-| `openai`         | OpenAI                            |  Pay-as-you-go   | `gpt-4o-mini`             | `OPENAI_API_KEY`                           |
+| `openai`         | OpenAI                            |  Pay-as-you-go   | `gpt-5.4-mini`            | `OPENAI_API_KEY`                           |
 | `anthropic`      | Anthropic                         |  Pay-as-you-go   | `claude-3-5-haiku-latest` | `ANTHROPIC_API_KEY`                        |
 
 ### 2. Configure Credentials

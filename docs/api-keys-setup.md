@@ -113,7 +113,7 @@ Run with:
 
 ## 4. ⚡ OpenAI (`openai` profile)
 
-OpenAI models (`gpt-4o-mini`) are very low cost (fractions of a cent per request), but require an active OpenAI platform account.
+OpenAI models (`gpt-5.4-mini`) are very low cost (fractions of a cent per request), but require an active OpenAI platform account.
 
 ### How to Obtain an API Key:
 
