@@ -17,7 +17,6 @@ spring:
       chat:
         options:
           model: gpt-4o-mini
-
 ---
 spring:
   config:
@@ -31,8 +30,7 @@ spring:
           location: ${GCP_LOCATION:europe-west1}
           chat:
             options:
-              model: gemini-2.0-flash-exp
-
+              model: gemini-2.5-flash
 ---
 spring:
   config:
@@ -44,7 +42,6 @@ spring:
       chat:
         options:
           model: llama3.2
-
 ---
 spring:
   config:
@@ -55,8 +52,7 @@ spring:
       api-key: ${ANTHROPIC_API_KEY:your-anthropic-key-here}
       chat:
         options:
-          model: claude-3-5-haiku-20241022
-
+          model: claude-3-5-haiku-latest
 ---
 spring:
   config:
